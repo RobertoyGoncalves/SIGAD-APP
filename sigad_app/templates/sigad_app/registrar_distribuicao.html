@@ -1,0 +1,38 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}Registrar Distribuição | SIGAD{% endblock %}
+{% block content %}
+<section class="page-intro narrow">
+    <h2 class="page-title">Registrar Distribuição</h2>
+    <p class="page-subtitle">Registre a distribuição de itens para beneficiários</p>
+</section>
+
+<section class="stack narrow">
+    <div class="form-card">
+        <div class="field-group full-width">
+            <label>Beneficiário</label>
+            <select>
+                {% for beneficiario in beneficiarios %}<option>{{ beneficiario }}</option>{% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <h3 class="section-title">Itens da Distribuição</h3>
+        <div class="inline-field-row">
+            <select>
+                {% for item in itens %}<option>{{ item }}</option>{% endfor %}
+            </select>
+            <button class="btn btn-primary" type="button"><i class="icon icon-plus"></i>Adicionar</button>
+        </div>
+        <div class="empty-box">
+            <strong>Nenhum item adicionado</strong>
+            <p>Busque e adicione itens do estoque</p>
+        </div>
+    </div>
+
+    <div class="action-row">
+        <button class="btn btn-primary full-grow" type="button">Confirmar Distribuição</button>
+        <button class="btn btn-secondary" type="reset">Limpar</button>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}Registrar Item | SIGAD{% endblock %}
+{% block content %}
+<section class="page-intro narrow">
+    <h2 class="page-title">Registrar Item</h2>
+    <p class="page-subtitle">Cadastre novos itens recebidos no estoque</p>
+</section>
+
+<section class="form-card narrow">
+    <form class="grid-form">
+        <div class="field-group">
+            <label>Categoria *</label>
+            <select>
+                {% for categoria in categorias %}<option>{{ categoria }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="field-group">
+            <label>Nome do Item *</label>
+            <input type="text" placeholder="Ex: Arroz branco">
+        </div>
+        <div class="field-group">
+            <label>Quantidade *</label>
+            <input type="number" placeholder="0">
+        </div>
+        <div class="field-group">
+            <label>Unidade *</label>
+            <select>
+                {% for unidade in unidades %}<option>{{ unidade }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="field-group">
+            <label>Data de Validade</label>
+            <input type="text" placeholder="dd/mm/aaaa">
+        </div>
+        <div class="field-group">
+            <label>Nome do Doador</label>
+            <input type="text" placeholder="Nome do doador">
+        </div>
+        <div class="field-group full-width">
+            <label>Observações</label>
+            <textarea rows="5" placeholder="Informações adicionais..."></textarea>
+        </div>
+        <div class="form-actions full-width">
+            <button class="btn btn-primary" type="button">Cadastrar Item</button>
+            <button class="btn btn-secondary" type="reset">Limpar</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

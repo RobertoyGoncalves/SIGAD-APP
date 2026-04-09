@@ -1,0 +1,37 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}Beneficiários | SIGAD{% endblock %}
+{% block content %}
+<section class="topbar-column">
+    <div class="between-row">
+        <div>
+            <h2 class="page-title">Beneficiários</h2>
+            <p class="page-subtitle">Gerencie os beneficiários cadastrados</p>
+        </div>
+        <button class="btn btn-primary"><i class="icon icon-plus"></i>Novo Beneficiário</button>
+    </div>
+    <div class="toolbar panel search-row single-search">
+        <div class="search-input"><i class="icon icon-search"></i><input type="text" placeholder="Buscar beneficiário..."></div>
+        <button class="btn btn-secondary"><i class="icon icon-refresh-cw"></i>Atualizar</button>
+    </div>
+</section>
+
+<section class="card-grid">
+    {% for beneficiario in beneficiarios_cards %}
+    <article class="beneficiary-card panel">
+        <header>
+            <h3>{{ beneficiario.nome }}</h3>
+            <p>CPF: {{ beneficiario.cpf }}</p>
+        </header>
+        <div class="beneficiary-info">
+            <p><i class="icon icon-phone"></i>{{ beneficiario.telefone }}</p>
+            <p><i class="icon icon-mail"></i>{{ beneficiario.email }}</p>
+            <p><i class="icon icon-map-pin"></i>{{ beneficiario.endereco }}</p>
+        </div>
+        <footer>
+            <span>Última distribuição</span>
+            <strong>{{ beneficiario.ultima_distribuicao }}</strong>
+        </footer>
+    </article>
+    {% endfor %}
+</section>
+{% endblock %}

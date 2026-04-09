@@ -1,0 +1,44 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}Dashboard | SIGAD{% endblock %}
+{% block content %}
+<section class="topbar">
+    <div>
+        <h2 class="page-title">Dashboard</h2>
+        <p class="page-subtitle">Visão geral do sistema de doações</p>
+    </div>
+    <button class="btn btn-secondary"><i class="icon icon-refresh-cw"></i>Atualizar</button>
+</section>
+
+<section class="kpi-grid">
+    {% for card in cards %}
+    <article class="kpi-card">
+        <div>
+            <p class="kpi-label">{{ card.title }}</p>
+            <h3 class="kpi-value">{{ card.value }}</h3>
+            <p class="kpi-delta">{{ card.delta }}</p>
+        </div>
+        <span class="kpi-icon {{ card.tone }}"><i class="icon icon-{{ card.icon }}"></i></span>
+    </article>
+    {% endfor %}
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h3>Atividades Recentes</h3>
+    </div>
+    <div class="activity-list">
+        {% for atividade in atividades %}
+        <div class="activity-item">
+            <div class="activity-left">
+                <span class="activity-dot"></span>
+                <div>
+                    <strong>{{ atividade.titulo }}</strong>
+                    <p>{{ atividade.descricao }}</p>
+                </div>
+            </div>
+            <span class="activity-time">{{ atividade.tempo }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}Relatórios | SIGAD{% endblock %}
+{% block content %}
+<section class="page-intro">
+    <h2 class="page-title">Relatórios</h2>
+    <p class="page-subtitle">Área pronta para gráficos, exportações e relatórios do sistema.</p>
+</section>
+
+<section class="panel empty-report">
+    <div class="empty-box large">
+        <strong>Módulo inicial criado</strong>
+        <p>Você pode ligar esta tela depois com gráficos, filtros por período, exportação PDF e CSV.</p>
+        <span class="report-date">Data de referência: {{ today }}</span>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}Estoque | SIGAD{% endblock %}
+{% block content %}
+<section class="topbar-column">
+    <div>
+        <h2 class="page-title">Estoque</h2>
+        <p class="page-subtitle">Visualize e gerencie todos os itens em estoque</p>
+    </div>
+    <div class="toolbar panel search-row">
+        <div class="search-input"><i class="icon icon-search"></i><input type="text" placeholder="Buscar item..."></div>
+        <select class="filter-select"><option>Todos</option></select>
+        <button class="btn btn-secondary"><i class="icon icon-refresh-cw"></i>Atualizar</button>
+    </div>
+</section>
+
+<section class="panel table-panel">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Categoria</th>
+                    <th>Quantidade</th>
+                    <th>Unidade</th>
+                    <th>Validade</th>
+                    <th>Doador</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in itens_estoque %}
+                <tr>
+                    <td>{{ item.nome }}</td>
+                    <td><span class="badge {{ item.badge }}">{{ item.categoria }}</span></td>
+                    <td>{{ item.quantidade }}</td>
+                    <td>{{ item.unidade }}</td>
+                    <td>{{ item.validade }}</td>
+                    <td>{{ item.doador }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="panel total-panel">
+    <span>Total de itens em estoque:</span>
+    <strong>{{ total_estoque }} unidades</strong>
+</section>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SIGAD{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.542.0/font/lucide.css">
+    <link rel="stylesheet" href="{% static 'sigad_app/css/style.css' %}">
+</head>
+<body>
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <div class="dashboard-shell">
+        <aside class="sidebar">
+            <div>
+                <div class="brand">
+                    <h1>SIGAD</h1>
+                    <p>Sistema de Gestão de Doações</p>
+                </div>
+                <nav class="sidebar-nav" aria-label="Menu principal">
+                    {% for item in sidebar_items %}
+                    <a href="{% url item.url_name %}" class="nav-link {% if active_page == item.url_name %}active{% endif %}">
+                        <i class="icon icon-{{ item.icon }}"></i>
+                        <span>{{ item.label }}</span>
+                    </a>
+                    {% endfor %}
+                </nav>
+            </div>
+            <div class="sidebar-footer">© 2026 SIGAD v1.0</div>
+        </aside>
+
+        <main class="main-panel" id="conteudo">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    <script src="{% static 'sigad_app/js/app.js' %}" defer></script>
+</body>
+</html>
