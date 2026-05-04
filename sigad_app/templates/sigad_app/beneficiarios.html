@@ -43,7 +43,7 @@
         </form>
     </details>
     <form class="toolbar panel search-row single-search" method="get" action="{% url 'beneficiarios' %}">
-        <div class="search-input"><i class="icon icon-search"></i><input type="search" name="q" value="{{ filtro_q }}" placeholder="Buscar por nome, CPF, e-mail…"></div>
+        <div class="search-input"><i class="icon icon-search"></i><input type="search" name="q" value="{{ filtro_q }}" placeholder="Buscar por nome, e-mail ou telefone…"></div>
         <button type="submit" class="btn btn-secondary"><i class="icon icon-search"></i>Buscar</button>
         {% if filtro_q %}<a class="btn btn-secondary" href="{% url 'beneficiarios' %}">Limpar</a>{% endif %}
     </form>
@@ -54,7 +54,6 @@
     <article class="beneficiary-card panel">
         <header>
             <h3>{{ beneficiario.nome }}</h3>
-            <p>CPF: {{ beneficiario.cpf }}</p>
         </header>
         <div class="beneficiary-info">
             <p><i class="icon icon-phone"></i>{{ beneficiario.telefone }}</p>

@@ -2,6 +2,8 @@ from pathlib import Path
 import os
 from urllib.parse import unquote, urlparse
 
+from django.core.exceptions import ImproperlyConfigured
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 try:
@@ -15,7 +17,7 @@ except ImportError:
 def _postgres_from_url(url: str) -> dict:
     u = urlparse(url.strip())
     if u.scheme not in ('postgres', 'postgresql'):
-        raise ValueError('DATABASE_URL deve começar com postgresql://')
+        raise ValueError('DATABASE_URL deve começar com postgres:// ou postgresql://')
     name = (u.path or '').lstrip('/') or 'postgres'
     return {
         'ENGINE': 'django.db.backends.postgresql',
@@ -46,10 +48,39 @@ def _postgres_from_env() -> dict | None:
         'OPTIONS': {'sslmode': 'require'},
         'CONN_MAX_AGE': 60,
     }
-SECRET_KEY = 'django-insecure-sigad-dev-key'
-DEBUG = True
-ALLOWED_HOSTS = []
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-sigad-dev-key')
+if os.getenv('RENDER', '').strip().lower() in ('1', 'true', 'yes') and (
+    not os.getenv('SECRET_KEY', '').strip() or SECRET_KEY == 'django-insecure-sigad-dev-key'
+):
+    raise ImproperlyConfigured(
+        'Defina SECRET_KEY nas variaveis de ambiente do Render (valor longo e aleatorio).'
+    )
+DEBUG = os.getenv('DEBUG', 'True').strip().lower() in ('1', 'true', 'yes', 'on')
+
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if h.strip()
+]
+_render_host = os.getenv('RENDER_EXTERNAL_HOSTNAME', '').strip()
+if _render_host and _render_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_render_host)
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+if os.getenv('RENDER', '').strip().lower() in ('1', 'true', 'yes'):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    if _render_host:
+        origin = f'https://{_render_host}'
+        CSRF_TRUSTED_ORIGINS = [origin]
+        if os.getenv('CSRF_TRUSTED_ORIGINS'):
+            CSRF_TRUSTED_ORIGINS.extend(
+                x.strip()
+                for x in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+                if x.strip() and x.strip() not in CSRF_TRUSTED_ORIGINS
+            )
+elif (extra := os.getenv('CSRF_TRUSTED_ORIGINS', '').strip()):
+    CSRF_TRUSTED_ORIGINS = [x.strip() for x in extra.split(',') if x.strip()]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -63,6 +94,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

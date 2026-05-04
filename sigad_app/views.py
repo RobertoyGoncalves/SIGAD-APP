@@ -301,7 +301,6 @@ def beneficiarios(request):
     if q:
         qs = qs.filter(
             Q(nome__icontains=q)
-            | Q(cpf__icontains=q)
             | Q(email__icontains=q)
             | Q(telefone__icontains=q)
         )
@@ -316,7 +315,6 @@ def beneficiarios(request):
         beneficiarios_cards.append(
             {
                 'nome': b.nome,
-                'cpf': b.cpf,
                 'telefone': b.telefone,
                 'email': b.email,
                 'endereco': b.endereco,
