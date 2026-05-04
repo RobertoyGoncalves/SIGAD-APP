@@ -1,16 +1,247 @@
 {% extends 'sigad_app/base.html' %}
 {% block title %}Relatórios | SIGAD{% endblock %}
 {% block content %}
-<section class="page-intro">
-    <h2 class="page-title">Relatórios</h2>
-    <p class="page-subtitle">Área pronta para gráficos, exportações e relatórios do sistema.</p>
-</section>
-
-<section class="panel empty-report">
-    <div class="empty-box large">
-        <strong>Módulo inicial criado</strong>
-        <p>Você pode ligar esta tela depois com gráficos, filtros por período, exportação PDF e CSV.</p>
-        <span class="report-date">Data de referência: {{ today }}</span>
+<section class="topbar report-intro">
+    <div>
+        <h2 class="page-title">Relatórios</h2>
+        <p class="page-subtitle">
+            {% if periodo == 'categoria' %}
+            Comparativo por categoria no mês corrente, além das visões por tempo.
+            {% else %}
+            Distribuições por período — alterne entre semana, mês ou categorias.
+            {% endif %}
+        </p>
+    </div>
+    <div class="report-actions">
+        <a class="btn btn-primary" href="?periodo={{ periodo }}&amp;export=xlsx"><i class="icon icon-download"></i>Exportar Excel</a>
     </div>
 </section>
+
+<nav class="report-tabs" aria-label="Tipo de relatório">
+    <a href="?periodo=semanal" class="report-tab {% if periodo == 'semanal' %}is-active{% endif %}">Semanal</a>
+    <a href="?periodo=mensal" class="report-tab {% if periodo == 'mensal' %}is-active{% endif %}">Mensal</a>
+    <a href="?periodo=categoria" class="report-tab {% if periodo == 'categoria' %}is-active{% endif %}">Por categoria</a>
+</nav>
+
+<p class="report-period-meta">
+    <strong>{{ periodo_titulo }}</strong>
+    <span class="report-meta-sep">·</span>
+    <span>Intervalo: {{ range_inicio }} a {{ range_fim }}</span>
+    <span class="report-meta-sep">·</span>
+    <span>Gerado em {{ today }}</span>
+</p>
+
+<section class="kpi-grid report-kpis">
+    {% for card in resumo_cards %}
+    <article class="kpi-card">
+        <div>
+            <p class="kpi-label">{{ card.title }}</p>
+            <h3 class="kpi-value">{{ card.value }}</h3>
+            <p class="kpi-delta">{{ card.delta }}</p>
+        </div>
+        <span class="kpi-icon {{ card.tone }}"><i class="icon icon-{{ card.icon }}"></i></span>
+    </article>
+    {% endfor %}
+</section>
+
+<section class="panel report-chart-panel{% if periodo == 'categoria' %} report-chart-panel--by-category{% endif %}">
+    <div class="panel-header report-chart-header">
+        <h3>{{ chart_title }}</h3>
+        <span class="report-chart-legend">{{ chart_legend_hint }}</span>
+    </div>
+    <div class="chart-wrap{% if periodo == 'categoria' %} chart-wrap--tall{% endif %}">
+        <canvas id="relatorioChart" aria-label="Gráfico de relatório"></canvas>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    var canvas = document.getElementById('relatorioChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    var labels = {{ chart_labels_json }};
+    var values = {{ chart_values_json }};
+    var chartType = '{{ chart_type }}';
+    var indexAxis = '{{ chart_index_axis }}';
+    var valueLabel = '{{ value_label }}';
+
+    var primary = '#2563eb';
+    var primarySoft = 'rgba(37, 99, 235, 0.14)';
+    var gridColor = 'rgba(71, 85, 105, 0.38)';
+    var tick = '#64748b';
+
+    var isHorizontal = indexAxis === 'y';
+    var isBar = chartType === 'bar';
+    var isLine = chartType === 'line';
+
+    Chart.defaults.font.family = "'Inter', system-ui, -apple-system, sans-serif";
+    Chart.defaults.color = tick;
+
+    var maxVal = Math.max.apply(null, values.concat([0]));
+    var ySuggested = Math.max(4, Math.ceil(maxVal * 1.15) + 1);
+
+    function fillGradient(context) {
+        var chart = context.chart;
+        var c = chart.ctx;
+        var area = chart.chartArea;
+        if (!area) {
+            return isBar ? 'rgba(37, 99, 235, 0.7)' : primarySoft;
+        }
+        var g;
+        if (isBar && isHorizontal) {
+            g = c.createLinearGradient(area.left, 0, area.right, 0);
+            g.addColorStop(0, 'rgba(37, 99, 235, 0.5)');
+            g.addColorStop(1, 'rgba(96, 165, 250, 0.95)');
+        } else if (isBar) {
+            g = c.createLinearGradient(0, area.bottom, 0, area.top);
+            g.addColorStop(0, 'rgba(37, 99, 235, 0.45)');
+            g.addColorStop(1, 'rgba(96, 165, 250, 0.95)');
+        } else {
+            g = c.createLinearGradient(0, area.bottom, 0, area.top);
+            g.addColorStop(0, primarySoft);
+            g.addColorStop(0.55, 'rgba(37, 99, 235, 0.2)');
+            g.addColorStop(1, 'rgba(37, 99, 235, 0.38)');
+        }
+        return g;
+    }
+
+    var borderRadius = isBar
+        ? (isHorizontal
+            ? { topRight: 10, bottomRight: 10, topLeft: 0, bottomLeft: 0 }
+            : { topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 })
+        : 0;
+
+    new Chart(canvas.getContext('2d'), {
+        type: chartType,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: valueLabel.charAt(0).toUpperCase() + valueLabel.slice(1),
+                data: values,
+                borderColor: primary,
+                backgroundColor: fillGradient,
+                borderWidth: isLine ? 3 : (isBar ? 0 : 2),
+                fill: isLine,
+                tension: 0.35,
+                maxBarThickness: isHorizontal ? 26 : 48,
+                borderRadius: borderRadius,
+                borderSkipped: false,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: primary,
+                pointBorderWidth: isLine ? 2.5 : 2,
+                pointRadius: isBar ? 0 : 5,
+                pointHoverRadius: isBar ? 0 : 8,
+                pointHoverBorderWidth: 2,
+                pointHoverBackgroundColor: '#ffffff',
+                hoverBorderColor: primary,
+                hoverBackgroundColor: isBar ? 'rgba(37, 99, 235, 0.95)' : undefined,
+            }]
+        },
+        options: {
+            indexAxis: indexAxis,
+            responsive: true,
+            maintainAspectRatio: false,
+            devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+            animation: {
+                duration: 720,
+                easing: 'easeOutQuart'
+            },
+            interaction: { intersect: false, mode: isHorizontal ? 'nearest' : 'index' },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                    titleColor: '#f8fafc',
+                    bodyColor: '#e2e8f0',
+                    padding: 12,
+                    cornerRadius: 10,
+                    displayColors: false,
+                    callbacks: {
+                        title: function (items) {
+                            return items.length ? items[0].label : '';
+                        },
+                        label: function (ctx) {
+                            var v = isHorizontal ? ctx.parsed.x : (ctx.parsed.y !== undefined && ctx.parsed.y !== null ? ctx.parsed.y : ctx.raw);
+                            var n = Number(v);
+                            if (valueLabel === 'unidades') {
+                                return n === 1 ? '1 unidade' : n + ' unidades';
+                            }
+                            return n === 1 ? '1 distribuição' : n + ' distribuições';
+                        }
+                    }
+                }
+            },
+            scales: isHorizontal ? {
+                x: {
+                    beginAtZero: true,
+                    suggestedMax: ySuggested,
+                    grid: {
+                        color: gridColor,
+                        lineWidth: 1.25,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        font: { size: 11, weight: '500' },
+                        padding: 8,
+                        precision: 0
+                    },
+                    border: { display: false }
+                },
+                y: {
+                    offset: true,
+                    grid: {
+                        color: gridColor,
+                        lineWidth: 1.1,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        font: { size: 11, weight: '500' },
+                        padding: 10,
+                        autoSkip: false
+                    },
+                    border: { display: false }
+                }
+            } : {
+                x: {
+                    offset: isBar,
+                    grid: {
+                        display: isLine,
+                        drawTicks: isLine,
+                        color: gridColor,
+                        lineWidth: 1.25
+                    },
+                    ticks: {
+                        font: { size: 11, weight: '500' },
+                        maxRotation: isBar ? 35 : 0,
+                        minRotation: 0,
+                        autoSkip: !isLine,
+                        maxTicksLimit: isLine ? 14 : undefined,
+                        padding: 8
+                    },
+                    border: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    suggestedMax: ySuggested,
+                    grid: {
+                        color: gridColor,
+                        lineWidth: 1.35,
+                        drawBorder: false,
+                        tickLength: 0
+                    },
+                    ticks: {
+                        font: { size: 11, weight: '500' },
+                        padding: 10,
+                        precision: 0
+                    },
+                    border: { display: false }
+                }
+            }
+        }
+    });
+})();
+</script>
 {% endblock %}

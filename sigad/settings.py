@@ -1,7 +1,51 @@
 from pathlib import Path
 import os
+from urllib.parse import unquote, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(BASE_DIR / '.env')
+except ImportError:
+    pass
+
+
+def _postgres_from_url(url: str) -> dict:
+    u = urlparse(url.strip())
+    if u.scheme not in ('postgres', 'postgresql'):
+        raise ValueError('DATABASE_URL deve começar com postgresql://')
+    name = (u.path or '').lstrip('/') or 'postgres'
+    return {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': name,
+        'USER': unquote(u.username or ''),
+        'PASSWORD': unquote(u.password or ''),
+        'HOST': u.hostname or '',
+        'PORT': str(u.port or 5432),
+        'OPTIONS': {'sslmode': 'require'},
+        'CONN_MAX_AGE': 60,
+    }
+
+
+def _postgres_from_env() -> dict | None:
+    url = os.getenv('DATABASE_URL', '').strip()
+    if url:
+        return _postgres_from_url(url)
+    host = os.getenv('SUPABASE_DB_HOST', '').strip()
+    if not host:
+        return None
+    return {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('SUPABASE_DB_NAME', 'postgres'),
+        'USER': os.getenv('SUPABASE_DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('SUPABASE_DB_PASSWORD', ''),
+        'HOST': host,
+        'PORT': os.getenv('SUPABASE_DB_PORT', '5432'),
+        'OPTIONS': {'sslmode': 'require'},
+        'CONN_MAX_AGE': 60,
+    }
 SECRET_KEY = 'django-insecure-sigad-dev-key'
 DEBUG = True
 ALLOWED_HOSTS = []
@@ -46,12 +90,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sigad.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+_pg = _postgres_from_env()
+if _pg:
+    DATABASES = {'default': _pg}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
 
 AUTH_PASSWORD_VALIDATORS = []
 
