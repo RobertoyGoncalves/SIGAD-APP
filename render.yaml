@@ -1,5 +1,5 @@
-# Blueprint opcional: no painel Render use "New" -> "Blueprint" e aponte para este repo,
-# ou crie um Web Service manualmente e copie build/start/preDeploy dos comentários abaixo.
+# Blueprint: New -> Blueprint -> repo ProgWeb (branch main).
+# Plano free nao suporta preDeployCommand; migrate roda no build (precisa de DATABASE_URL no build).
 #
 # Variáveis que você deve definir no painel (Environment), como Secret:
 #   DATABASE_URL  — Postgres (Supabase Session pooler ou Postgres criado no Render)
@@ -11,8 +11,7 @@ services:
     runtime: python
     plan: free
     region: frankfurt
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    preDeployCommand: python manage.py migrate --noinput
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
     startCommand: gunicorn sigad.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
