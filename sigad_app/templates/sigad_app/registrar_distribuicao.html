@@ -3,36 +3,130 @@
 {% block content %}
 <section class="page-intro narrow">
     <h2 class="page-title">Registrar Distribuição</h2>
-    <p class="page-subtitle">Registre a distribuição de itens para beneficiários</p>
+    <p class="page-subtitle">Registre a saída de itens do estoque para um beneficiário.</p>
 </section>
 
-<section class="stack narrow">
+<form method="post" action="{% url 'registrar_distribuicao' %}" class="stack narrow" id="form-distribuicao">
+    {% csrf_token %}
+    <input type="hidden" name="linhas_json" id="linhas_json" value="[]">
+
     <div class="form-card">
         <div class="field-group full-width">
-            <label>Beneficiário</label>
-            <select>
-                {% for beneficiario in beneficiarios %}<option>{{ beneficiario }}</option>{% endfor %}
+            <label for="beneficiario_id">Beneficiário *</label>
+            <select name="beneficiario_id" id="beneficiario_id" required>
+                <option value="">Selecione…</option>
+                {% for b in beneficiarios_opts %}
+                <option value="{{ b.id }}">{{ b.nome }}</option>
+                {% endfor %}
             </select>
+            {% if not beneficiarios_opts %}
+            <p class="page-subtitle" style="margin-top:8px">Cadastre um beneficiário antes de registrar distribuições.</p>
+            {% endif %}
         </div>
     </div>
 
     <div class="form-card">
-        <h3 class="section-title">Itens da Distribuição</h3>
-        <div class="inline-field-row">
-            <select>
-                {% for item in itens %}<option>{{ item }}</option>{% endfor %}
+        <h3 class="section-title">Itens da distribuição</h3>
+        <div class="inline-field-row distrib-add-row">
+            <select id="dist_item_id" {% if not itens_opts %}disabled{% endif %}>
+                <option value="">Selecione o item…</option>
+                {% for it in itens_opts %}
+                <option value="{{ it.id }}">{{ it.label }}</option>
+                {% endfor %}
             </select>
-            <button class="btn btn-primary" type="button"><i class="icon icon-plus"></i>Adicionar</button>
+            <input type="number" id="dist_qtd" min="1" value="1" class="dist-qtd-input" aria-label="Quantidade" {% if not itens_opts %}disabled{% endif %}>
+            <button class="btn btn-primary" type="button" id="dist_add_btn" {% if not itens_opts %}disabled{% endif %}><i class="icon icon-plus"></i>Adicionar</button>
         </div>
-        <div class="empty-box">
-            <strong>Nenhum item adicionado</strong>
-            <p>Busque e adicione itens do estoque</p>
+        <div id="dist_list_wrap" class="dist-list-wrap {% if not itens_opts %}is-empty{% endif %}">
+            <table class="dist-lines-table" id="dist_lines_table" hidden>
+                <thead>
+                    <tr><th>Item</th><th>Qtd</th><th></th></tr>
+                </thead>
+                <tbody id="dist_lines_body"></tbody>
+            </table>
+            <div class="empty-box" id="dist_empty">
+                <strong>Nenhum item adicionado</strong>
+                <p>Selecione o item, a quantidade e clique em Adicionar.</p>
+            </div>
         </div>
     </div>
 
     <div class="action-row">
-        <button class="btn btn-primary full-grow" type="button">Confirmar Distribuição</button>
-        <button class="btn btn-secondary" type="reset">Limpar</button>
+        <button class="btn btn-primary full-grow" type="submit" {% if not beneficiarios_opts or not itens_opts %}disabled{% endif %}>Confirmar distribuição</button>
     </div>
-</section>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+    var lines = [];
+    var hidden = document.getElementById('linhas_json');
+    var tbody = document.getElementById('dist_lines_body');
+    var table = document.getElementById('dist_lines_table');
+    var emptyBox = document.getElementById('dist_empty');
+    var wrap = document.getElementById('dist_list_wrap');
+    var selItem = document.getElementById('dist_item_id');
+    var inpQtd = document.getElementById('dist_qtd');
+    var opts = {{ itens_opts_json }};
+
+    function labelForId(id) {
+        for (var i = 0; i < opts.length; i++) {
+            if (String(opts[i].id) === String(id)) return opts[i].label;
+        }
+        return '#' + id;
+    }
+
+    function syncHidden() {
+        hidden.value = JSON.stringify(lines);
+    }
+
+    function render() {
+        tbody.replaceChildren();
+        lines.forEach(function (row, idx) {
+            var tr = document.createElement('tr');
+            var td1 = document.createElement('td');
+            td1.textContent = labelForId(row.item_id);
+            var td2 = document.createElement('td');
+            td2.textContent = String(row.quantidade);
+            var td3 = document.createElement('td');
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-secondary';
+            btn.textContent = 'Remover';
+            btn.addEventListener('click', function () {
+                lines.splice(idx, 1);
+                render();
+            });
+            td3.appendChild(btn);
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            tr.appendChild(td3);
+            tbody.appendChild(tr);
+        });
+        var has = lines.length > 0;
+        table.hidden = !has;
+        emptyBox.style.display = has ? 'none' : 'flex';
+        if (wrap) wrap.classList.toggle('is-empty', !has);
+        syncHidden();
+    }
+
+    document.getElementById('dist_add_btn').addEventListener('click', function () {
+        var id = selItem.value;
+        var q = parseInt(inpQtd.value, 10) || 0;
+        if (!id) return;
+        if (q < 1) return;
+        lines.push({ item_id: parseInt(id, 10), quantidade: q });
+        selItem.value = '';
+        inpQtd.value = '1';
+        render();
+    });
+
+    document.getElementById('form-distribuicao').addEventListener('submit', function () {
+        syncHidden();
+    });
+
+    render();
+})();
+</script>
 {% endblock %}

@@ -6,11 +6,17 @@
         <h2 class="page-title">Estoque</h2>
         <p class="page-subtitle">Visualize e gerencie todos os itens em estoque</p>
     </div>
-    <div class="toolbar panel search-row">
-        <div class="search-input"><i class="icon icon-search"></i><input type="text" placeholder="Buscar item..."></div>
-        <select class="filter-select"><option>Todos</option></select>
-        <button class="btn btn-secondary"><i class="icon icon-refresh-cw"></i>Atualizar</button>
-    </div>
+    <form class="toolbar panel search-row" method="get" action="{% url 'estoque' %}">
+        <div class="search-input"><i class="icon icon-search"></i><input type="search" name="q" value="{{ filtro_q }}" placeholder="Buscar por item ou doador…"></div>
+        <select class="filter-select" name="categoria" aria-label="Filtrar por categoria">
+            <option value="">Todas as categorias</option>
+            {% for val, lab in categorias_filtro %}
+            <option value="{{ val }}" {% if filtro_categoria == val %}selected{% endif %}>{{ lab }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-secondary"><i class="icon icon-search"></i>Filtrar</button>
+        {% if filtro_q or filtro_categoria %}<a class="btn btn-secondary" href="{% url 'estoque' %}">Limpar</a>{% endif %}
+    </form>
 </section>
 
 <section class="panel table-panel">
@@ -36,6 +42,8 @@
                     <td>{{ item.validade }}</td>
                     <td>{{ item.doador }}</td>
                 </tr>
+                {% empty %}
+                <tr><td colspan="6">Nenhum item encontrado com os filtros atuais.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -43,7 +51,7 @@
 </section>
 
 <section class="panel total-panel">
-    <span>Total de itens em estoque:</span>
+    <span>Total de unidades em estoque (lista atual):</span>
     <strong>{{ total_estoque }} unidades</strong>
 </section>
 {% endblock %}

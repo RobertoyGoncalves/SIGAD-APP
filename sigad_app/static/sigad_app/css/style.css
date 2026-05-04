@@ -107,6 +107,91 @@ textarea {
     min-width: 0;
 }
 
+.app-messages {
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.app-message {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9375rem;
+    font-weight: 500;
+}
+
+.app-message--success {
+    background: var(--success-bg);
+    color: var(--success-text);
+    border: 1px solid rgba(22, 101, 52, 0.2);
+}
+
+.app-message--error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid rgba(153, 27, 27, 0.2);
+}
+
+.app-message--warning {
+    background: var(--warning-bg);
+    color: var(--warning-text);
+}
+
+.benef-new-panel {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    padding: 0 18px 18px;
+}
+
+.benef-new-summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 0 8px;
+    font-weight: 600;
+}
+
+.benef-new-summary::-webkit-details-marker {
+    display: none;
+}
+
+.benef-new-form {
+    padding-top: 8px;
+}
+
+.dist-add-row {
+    grid-template-columns: 1fr 100px auto;
+}
+
+.dist-qtd-input {
+    min-height: 46px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+}
+
+.dist-lines-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 0.9375rem;
+}
+
+.dist-lines-table th,
+.dist-lines-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.dist-list-wrap.is-empty .dist-lines-table {
+    display: none;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Sidebar                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -440,6 +525,14 @@ textarea {
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+
+.field-group .errorlist {
+    margin: 0 0 6px;
+    padding-left: 1.1em;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #b91c1c;
 }
 
 .field-group label {

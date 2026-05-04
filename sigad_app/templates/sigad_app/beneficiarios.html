@@ -7,12 +7,46 @@
             <h2 class="page-title">Beneficiários</h2>
             <p class="page-subtitle">Gerencie os beneficiários cadastrados</p>
         </div>
-        <button class="btn btn-primary"><i class="icon icon-plus"></i>Novo Beneficiário</button>
     </div>
-    <div class="toolbar panel search-row single-search">
-        <div class="search-input"><i class="icon icon-search"></i><input type="text" placeholder="Buscar beneficiário..."></div>
-        <button class="btn btn-secondary"><i class="icon icon-refresh-cw"></i>Atualizar</button>
-    </div>
+    <details class="panel benef-new-panel">
+        <summary class="benef-new-summary"><span class="btn btn-primary"><i class="icon icon-plus"></i>Novo beneficiário</span></summary>
+        <form method="post" action="{% url 'beneficiarios' %}" class="grid-form benef-new-form">
+            {% csrf_token %}
+            <div class="field-group">
+                {{ form.nome.errors }}
+                <label for="{{ form.nome.id_for_label }}">{{ form.nome.label }} *</label>
+                {{ form.nome }}
+            </div>
+            <div class="field-group">
+                {{ form.cpf.errors }}
+                <label for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }} *</label>
+                {{ form.cpf }}
+            </div>
+            <div class="field-group">
+                {{ form.telefone.errors }}
+                <label for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }} *</label>
+                {{ form.telefone }}
+            </div>
+            <div class="field-group">
+                {{ form.email.errors }}
+                <label for="{{ form.email.id_for_label }}">{{ form.email.label }} *</label>
+                {{ form.email }}
+            </div>
+            <div class="field-group full-width">
+                {{ form.endereco.errors }}
+                <label for="{{ form.endereco.id_for_label }}">{{ form.endereco.label }} *</label>
+                {{ form.endereco }}
+            </div>
+            <div class="form-actions full-width">
+                <button type="submit" class="btn btn-primary">Salvar beneficiário</button>
+            </div>
+        </form>
+    </details>
+    <form class="toolbar panel search-row single-search" method="get" action="{% url 'beneficiarios' %}">
+        <div class="search-input"><i class="icon icon-search"></i><input type="search" name="q" value="{{ filtro_q }}" placeholder="Buscar por nome, CPF, e-mail…"></div>
+        <button type="submit" class="btn btn-secondary"><i class="icon icon-search"></i>Buscar</button>
+        {% if filtro_q %}<a class="btn btn-secondary" href="{% url 'beneficiarios' %}">Limpar</a>{% endif %}
+    </form>
 </section>
 
 <section class="card-grid">
@@ -32,6 +66,8 @@
             <strong>{{ beneficiario.ultima_distribuicao }}</strong>
         </footer>
     </article>
+    {% empty %}
+    <p class="page-subtitle">Nenhum beneficiário cadastrado. Use “Novo beneficiário” acima.</p>
     {% endfor %}
 </section>
 {% endblock %}

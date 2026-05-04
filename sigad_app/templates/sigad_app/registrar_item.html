@@ -7,41 +7,48 @@
 </section>
 
 <section class="form-card narrow">
-    <form class="grid-form">
+    <form class="grid-form" method="post" action="{% url 'registrar_item' %}" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="field-group full-width">{{ form.non_field_errors }}</div>
+        {% endif %}
         <div class="field-group">
-            <label>Categoria *</label>
-            <select>
-                {% for categoria in categorias %}<option>{{ categoria }}</option>{% endfor %}
-            </select>
+            {{ form.categoria.errors }}
+            <label for="{{ form.categoria.id_for_label }}">{{ form.categoria.label }} *</label>
+            {{ form.categoria }}
         </div>
         <div class="field-group">
-            <label>Nome do Item *</label>
-            <input type="text" placeholder="Ex: Arroz branco">
+            {{ form.nome.errors }}
+            <label for="{{ form.nome.id_for_label }}">{{ form.nome.label }} *</label>
+            {{ form.nome }}
         </div>
         <div class="field-group">
-            <label>Quantidade *</label>
-            <input type="number" placeholder="0">
+            {{ form.quantidade.errors }}
+            <label for="{{ form.quantidade.id_for_label }}">{{ form.quantidade.label }} *</label>
+            {{ form.quantidade }}
         </div>
         <div class="field-group">
-            <label>Unidade *</label>
-            <select>
-                {% for unidade in unidades %}<option>{{ unidade }}</option>{% endfor %}
-            </select>
+            {{ form.unidade.errors }}
+            <label for="{{ form.unidade.id_for_label }}">{{ form.unidade.label }} *</label>
+            {{ form.unidade }}
         </div>
         <div class="field-group">
-            <label>Data de Validade</label>
-            <input type="text" placeholder="dd/mm/aaaa">
+            {{ form.validade.errors }}
+            <label for="{{ form.validade.id_for_label }}">{{ form.validade.label }}</label>
+            {{ form.validade }}
         </div>
         <div class="field-group">
-            <label>Nome do Doador</label>
-            <input type="text" placeholder="Nome do doador">
+            {{ form.doador.errors }}
+            <label for="{{ form.doador.id_for_label }}">{{ form.doador.label }}</label>
+            {{ form.doador }}
         </div>
         <div class="field-group full-width">
-            <label>Observações</label>
-            <textarea rows="5" placeholder="Informações adicionais..."></textarea>
+            {{ form.observacoes.errors }}
+            <label for="{{ form.observacoes.id_for_label }}">{{ form.observacoes.label }}</label>
+            {{ form.observacoes }}
         </div>
         <div class="form-actions full-width">
-            <button class="btn btn-primary" type="button">Cadastrar Item</button>
+            <button class="btn btn-primary" type="submit">Cadastrar item</button>
             <button class="btn btn-secondary" type="reset">Limpar</button>
         </div>
     </form>
