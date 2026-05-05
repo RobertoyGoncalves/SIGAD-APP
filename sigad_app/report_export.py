@@ -1,11 +1,11 @@
-"""Exportação de relatórios para Excel (.xlsx) com formatação."""
+"""gera planilha xlsx do relatorio com estilo basico."""
 
 from io import BytesIO
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 def _excel_col_width_from_text(max_chars: float, minimum: float = 14, maximum: float = 72) -> float:
-    """Largura aproximada no Excel (unidades ~ largura de caractere '0')."""
+    """largura aproximada da coluna no excel."""
     return max(minimum, min(maximum, max_chars * 1.12 + 3.5))
 
 

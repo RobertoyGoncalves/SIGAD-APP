@@ -1,6 +1,4 @@
-/* -------------------------------------------------------------------------- */
-/* Design tokens                                                              */
-/* -------------------------------------------------------------------------- */
+/* variaveis de tema */
 :root {
     --bg: #f0f4f9;
     --surface: #ffffff;
@@ -34,9 +32,7 @@
     --font: "Inter", system-ui, -apple-system, sans-serif;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Reset & base                                                               */
-/* -------------------------------------------------------------------------- */
+/* reset e base */
 *,
 *::before,
 *::after {
@@ -70,9 +66,7 @@ textarea {
     color: inherit;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Acessibilidade                                                            */
-/* -------------------------------------------------------------------------- */
+/* acessibilidade */
 .skip-link {
     position: absolute;
     left: -9999px;
@@ -93,9 +87,7 @@ textarea {
     outline-offset: 2px;
 }
 
-/* -------------------------------------------------------------------------- */
-/* App shell                                                                  */
-/* -------------------------------------------------------------------------- */
+/* layout principal */
 .dashboard-shell {
     display: grid;
     grid-template-columns: min(260px, 28vw) 1fr;
@@ -192,9 +184,7 @@ textarea {
     display: none;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Sidebar                                                                    */
-/* -------------------------------------------------------------------------- */
+/* menu lateral */
 .sidebar {
     display: flex;
     flex-direction: column;
@@ -255,9 +245,7 @@ textarea {
     color: rgba(248, 250, 252, 0.55);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Tipografia de página                                                       */
-/* -------------------------------------------------------------------------- */
+/* titulos de pagina */
 .page-intro {
     margin-bottom: 4px;
 }
@@ -290,9 +278,7 @@ textarea {
     color: var(--text-secondary);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Top bar & linhas de ação                                                   */
-/* -------------------------------------------------------------------------- */
+/* barra superior e acoes */
 .topbar,
 .between-row {
     display: flex;
@@ -309,9 +295,7 @@ textarea {
     gap: 20px;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Botões                                                                     */
-/* -------------------------------------------------------------------------- */
+/* botoes */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -348,9 +332,7 @@ textarea {
     border-color: var(--muted);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Cards de superfície (KPI, painel, formulário)                              */
-/* -------------------------------------------------------------------------- */
+/* cards e formularios */
 .kpi-card,
 .panel,
 .form-card {
@@ -389,15 +371,13 @@ textarea {
     color: var(--text-secondary);
 }
 
-/* Toolbar com busca (evita conflito visual panel + grid)                      */
+/* toolbar com busca */
 .panel.search-row,
 .panel.toolbar {
     padding: 16px 18px;
 }
 
-/* -------------------------------------------------------------------------- */
-/* KPI                                                                        */
-/* -------------------------------------------------------------------------- */
+/* indicadores */
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -458,9 +438,7 @@ textarea {
     background: var(--warning-bg);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Lista de atividades                                                        */
-/* -------------------------------------------------------------------------- */
+/* lista de atividades recentes */
 .activity-list {
     display: flex;
     flex-direction: column;
@@ -512,9 +490,7 @@ textarea {
     font-variant-numeric: tabular-nums;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Formulários                                                                */
-/* -------------------------------------------------------------------------- */
+/* formularios */
 .grid-form {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -602,9 +578,7 @@ textarea {
     align-self: stretch;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Busca & filtros                                                            */
-/* -------------------------------------------------------------------------- */
+/* busca e filtros */
 .search-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(140px, 200px) auto;
@@ -651,9 +625,7 @@ textarea {
     cursor: pointer;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Tabelas                                                                    */
-/* -------------------------------------------------------------------------- */
+/* tabelas */
 .table-panel {
     padding: 0;
     overflow: hidden;
@@ -704,9 +676,7 @@ table tbody tr:last-child td {
     border-bottom: none;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Badges & totais                                                            */
-/* -------------------------------------------------------------------------- */
+/* badges e totais */
 .badge {
     display: inline-flex;
     align-items: center;
@@ -749,9 +719,7 @@ table tbody tr:last-child td {
     color: var(--text);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Cards de beneficiários                                                     */
-/* -------------------------------------------------------------------------- */
+/* cards de beneficiarios */
 .card-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -818,9 +786,7 @@ table tbody tr:last-child td {
     color: var(--text);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Estados vazios & relatórios                                                */
-/* -------------------------------------------------------------------------- */
+/* estados vazios */
 .empty-report.panel {
     padding: 24px;
 }
@@ -864,9 +830,7 @@ table tbody tr:last-child td {
     color: var(--text-secondary);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Relatórios                                                                 */
-/* -------------------------------------------------------------------------- */
+/* relatorios */
 .report-intro {
     align-items: center;
 }
@@ -956,9 +920,7 @@ table tbody tr:last-child td {
     height: min(520px, 70vh);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Ícones (Lucide font)                                                       */
-/* -------------------------------------------------------------------------- */
+/* icones */
 .icon {
     display: inline-flex;
     align-items: center;
@@ -968,9 +930,7 @@ table tbody tr:last-child td {
     flex-shrink: 0;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Responsivo                                                                 */
-/* -------------------------------------------------------------------------- */
+/* layout em telas pequenas */
 @media (max-width: 1100px) {
     .kpi-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));

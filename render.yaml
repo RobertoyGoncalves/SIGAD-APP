@@ -1,8 +1,7 @@
-# Render Blueprint (branch main). Python version: see runtime.txt
+# blueprint (branch main). versao python: runtime.txt
 #
-# Postgres: included below (Render free DB; conta free costuma permitir apenas 1 DB free).
-# To use Supabase instead: delete the "databases" block and the DATABASE_URL envVar
-# below, then set DATABASE_URL manually in the service Environment on Render.
+# postgres gratis no render (uma conta free costuma ter limite de um banco free).
+# supabase: apague o bloco databases e a entrada DATABASE_URL abaixo; configure DATABASE_URL no painel.
 
 databases:
   - name: sigad-pg

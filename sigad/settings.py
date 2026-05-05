@@ -18,7 +18,7 @@ def _secret_key_from_env() -> str:
     if raw and raw != 'django-insecure-sigad-dev-key':
         return raw
     if os.getenv('RENDER', '').strip().lower() in ('1', 'true', 'yes'):
-        # generateValue as vezes so existe apos o 1o ciclo; fallback estavel por deploy (mesmo valor em todos os workers)
+        # fallback se o render ainda nao injetou secret_key neste deploy
         seed = '|'.join(
             (
                 os.getenv('RENDER_EXTERNAL_HOSTNAME', ''),

@@ -1,35 +1,38 @@
-# SIGAD - Sistema de Gestão de Doações
+# sigad — gestao de doacoes
 
-Projeto Django criado com base nas telas enviadas.
+projeto django com telas para estoque, beneficiarios e distribuicoes.
 
-## Como executar
+## como executar
 
-1. Crie um ambiente virtual:
-   python -m venv venv
+1. ambiente virtual:
+   `python -m venv venv`
 
-2. Ative o ambiente virtual:
-   - Windows: venv\Scripts\activate
-   - Linux/macOS: source venv/bin/activate
+2. ativar:
+   - windows: `venv\Scripts\activate`
+   - linux/macos: `source venv/bin/activate`
 
-3. Instale as dependências:
-   pip install -r requirements.txt
+3. dependencias:
+   `pip install -r requirements.txt`
 
-4. Aplique as migrações:
-   python manage.py migrate
+4. migracoes:
+   `python manage.py migrate`
 
-5. Rode o servidor:
-   python manage.py runserver
+5. servidor:
+   `python manage.py runserver`
 
-6. Acesse:
-   http://127.0.0.1:8000/
+6. abrir:
+   `http://127.0.0.1:8000/`
 
-## Rotas
-- /
-- /registrar-item/
-- /registrar-distribuicao/
-- /estoque/
-- /beneficiarios/
-- /relatorios/
+## rotas principais
 
-## Observação
-Os dados estão mockados nas views para facilitar sua apresentação inicial. Depois você pode conectar com os models e formulários reais.
+- `/`
+- `/registrar-item/`
+- `/registrar-distribuicao/`
+- `/estoque/`
+- `/beneficiarios/`
+- `/relatorios/`
+- `/admin/`
+
+## observacao
+
+os dados ficam no banco configurado (sqlite local ou postgres via `database_url` no `.env`).
