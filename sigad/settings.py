@@ -18,6 +18,8 @@ def _render_requires_production_secret() -> bool:
         'check',
         'shell',
         'showmigrations',
+        'runserver',
+        'createsuperuser',
     ):
         return False
     return True
