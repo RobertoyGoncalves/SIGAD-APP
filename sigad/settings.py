@@ -1,28 +1,7 @@
 from pathlib import Path
+import hashlib
 import os
-import sys
 from urllib.parse import unquote, urlparse
-
-from django.core.exceptions import ImproperlyConfigured
-
-
-def _render_requires_production_secret() -> bool:
-    """Fora do Render nao aplica. No Render, collectstatic/migrate etc. liberam; gunicorn exige SECRET_KEY."""
-    if os.getenv('RENDER', '').strip().lower() not in ('1', 'true', 'yes'):
-        return False
-    if len(sys.argv) >= 2 and sys.argv[1] in (
-        'collectstatic',
-        'migrate',
-        'makemigrations',
-        'test',
-        'check',
-        'shell',
-        'showmigrations',
-        'runserver',
-        'createsuperuser',
-    ):
-        return False
-    return True
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -32,6 +11,27 @@ try:
     load_dotenv(BASE_DIR / '.env')
 except ImportError:
     pass
+
+
+def _secret_key_from_env() -> str:
+    raw = (os.getenv('SECRET_KEY') or '').strip()
+    if raw and raw != 'django-insecure-sigad-dev-key':
+        return raw
+    if os.getenv('RENDER', '').strip().lower() in ('1', 'true', 'yes'):
+        # generateValue as vezes so existe apos o 1o ciclo; fallback estavel por deploy (mesmo valor em todos os workers)
+        seed = '|'.join(
+            (
+                os.getenv('RENDER_EXTERNAL_HOSTNAME', ''),
+                os.getenv('RENDER_SERVICE_NAME', ''),
+                os.getenv('RENDER_GIT_COMMIT', ''),
+                'sigad',
+            )
+        )
+        return hashlib.sha256(seed.encode('utf-8')).hexdigest()
+    return 'django-insecure-sigad-dev-key'
+
+
+SECRET_KEY = _secret_key_from_env()
 
 
 def _postgres_from_url(url: str) -> dict:
@@ -68,13 +68,6 @@ def _postgres_from_env() -> dict | None:
         'OPTIONS': {'sslmode': 'require'},
         'CONN_MAX_AGE': 60,
     }
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-sigad-dev-key')
-if _render_requires_production_secret() and (
-    not os.getenv('SECRET_KEY', '').strip() or SECRET_KEY == 'django-insecure-sigad-dev-key'
-):
-    raise ImproperlyConfigured(
-        'Defina SECRET_KEY nas variaveis de ambiente do Render (ex.: generateValue no render.yaml).'
-    )
 DEBUG = os.getenv('DEBUG', 'True').strip().lower() in ('1', 'true', 'yes', 'on')
 
 ALLOWED_HOSTS = [
