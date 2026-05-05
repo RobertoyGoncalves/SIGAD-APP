@@ -1,8 +1,13 @@
-# Blueprint: New -> Blueprint -> repo (branch main).
-# Plano free: migrate no build (sem preDeploy). SECRET_KEY gerado pelo Render.
+# Render Blueprint (branch main). Python version: see runtime.txt
 #
-# Ao aplicar o Blueprint, o painel pede DATABASE_URL (sync: false) — use a URI Postgres
-# (Supabase session pooler ou Postgres no Render).
+# Postgres: included below (Render free DB; conta free costuma permitir apenas 1 DB free).
+# To use Supabase instead: delete the "databases" block and the DATABASE_URL envVar
+# below, then set DATABASE_URL manually in the service Environment on Render.
+
+databases:
+  - name: sigad-pg
+    plan: free
+    region: frankfurt
 
 services:
   - type: web
@@ -10,14 +15,15 @@ services:
     runtime: python
     plan: free
     region: frankfurt
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && if [ -z "${DATABASE_URL:-}" ]; then echo "ERRO: defina DATABASE_URL no Environment e redeploy."; exit 1; fi && python manage.py migrate --noinput
+    branch: main
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
     startCommand: gunicorn sigad.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
-      - key: PYTHON_VERSION
-        value: "3.12.3"
       - key: DEBUG
         value: "False"
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: sigad-pg
+          property: connectionString
