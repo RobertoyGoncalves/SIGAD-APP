@@ -1,9 +1,8 @@
-# Blueprint: New -> Blueprint -> repo ProgWeb (branch main).
-# Plano free nao suporta preDeployCommand; migrate roda no build (precisa de DATABASE_URL no build).
+# Blueprint: New -> Blueprint -> repo (branch main).
+# Plano free: migrate no build (sem preDeploy). SECRET_KEY gerado pelo Render.
 #
-# Variáveis que você deve definir no painel (Environment), como Secret:
-#   DATABASE_URL  — Postgres (Supabase Session pooler ou Postgres criado no Render)
-#   SECRET_KEY    — string longa e aleatória (ex.: python -c "import secrets; print(secrets.token_urlsafe(48))")
+# Ao aplicar o Blueprint, o painel pede DATABASE_URL (sync: false) — use a URI Postgres
+# (Supabase session pooler ou Postgres no Render).
 
 services:
   - type: web
@@ -11,10 +10,14 @@ services:
     runtime: python
     plan: free
     region: frankfurt
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && if [ -z "${DATABASE_URL:-}" ]; then echo "ERRO: defina DATABASE_URL no Environment e redeploy."; exit 1; fi && python manage.py migrate --noinput
     startCommand: gunicorn sigad.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.3"
       - key: DEBUG
         value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false

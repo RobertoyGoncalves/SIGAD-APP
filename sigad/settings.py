@@ -1,8 +1,26 @@
 from pathlib import Path
 import os
+import sys
 from urllib.parse import unquote, urlparse
 
 from django.core.exceptions import ImproperlyConfigured
+
+
+def _render_requires_production_secret() -> bool:
+    """Fora do Render nao aplica. No Render, collectstatic/migrate etc. liberam; gunicorn exige SECRET_KEY."""
+    if os.getenv('RENDER', '').strip().lower() not in ('1', 'true', 'yes'):
+        return False
+    if len(sys.argv) >= 2 and sys.argv[1] in (
+        'collectstatic',
+        'migrate',
+        'makemigrations',
+        'test',
+        'check',
+        'shell',
+        'showmigrations',
+    ):
+        return False
+    return True
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -49,11 +67,11 @@ def _postgres_from_env() -> dict | None:
         'CONN_MAX_AGE': 60,
     }
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-sigad-dev-key')
-if os.getenv('RENDER', '').strip().lower() in ('1', 'true', 'yes') and (
+if _render_requires_production_secret() and (
     not os.getenv('SECRET_KEY', '').strip() or SECRET_KEY == 'django-insecure-sigad-dev-key'
 ):
     raise ImproperlyConfigured(
-        'Defina SECRET_KEY nas variaveis de ambiente do Render (valor longo e aleatorio).'
+        'Defina SECRET_KEY nas variaveis de ambiente do Render (ex.: generateValue no render.yaml).'
     )
 DEBUG = os.getenv('DEBUG', 'True').strip().lower() in ('1', 'true', 'yes', 'on')
 
