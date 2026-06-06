@@ -1,72 +1,96 @@
 {% extends 'sigad_app/base.html' %}
 {% block title %}Beneficiários | SIGAD{% endblock %}
 {% block content %}
-<section class="topbar-column">
-    <div class="between-row">
-        <div>
-            <h2 class="page-title">Beneficiários</h2>
-            <p class="page-subtitle">Gerencie os beneficiários cadastrados</p>
+<div class="mb-4">
+    <h1 class="fs-3 fw-bold mb-1">Beneficiários</h1>
+    <p class="text-secondary mb-3">Gerencie os beneficiários cadastrados</p>
+
+    <div class="mb-3">
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#novoBeneficiario" aria-expanded="false" aria-controls="novoBeneficiario">
+            <i class="icon icon-plus"></i>Novo beneficiário
+        </button>
+        <div class="collapse mt-3" id="novoBeneficiario">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="post" action="{% url 'beneficiarios' %}">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form.nome.errors }}
+                                <label for="{{ form.nome.id_for_label }}" class="form-label">{{ form.nome.label }} *</label>
+                                {{ form.nome }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.cpf.errors }}
+                                <label for="{{ form.cpf.id_for_label }}" class="form-label">{{ form.cpf.label }} *</label>
+                                {{ form.cpf }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.telefone.errors }}
+                                <label for="{{ form.telefone.id_for_label }}" class="form-label">{{ form.telefone.label }} *</label>
+                                {{ form.telefone }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.email.errors }}
+                                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }} *</label>
+                                {{ form.email }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.endereco.errors }}
+                                <label for="{{ form.endereco.id_for_label }}" class="form-label">{{ form.endereco.label }} *</label>
+                                {{ form.endereco }}
+                            </div>
+                            <div class="col-12 d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary">Salvar beneficiário</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
-    <details class="panel benef-new-panel">
-        <summary class="benef-new-summary"><span class="btn btn-primary"><i class="icon icon-plus"></i>Novo beneficiário</span></summary>
-        <form method="post" action="{% url 'beneficiarios' %}" class="grid-form benef-new-form">
-            {% csrf_token %}
-            <div class="field-group">
-                {{ form.nome.errors }}
-                <label for="{{ form.nome.id_for_label }}">{{ form.nome.label }} *</label>
-                {{ form.nome }}
-            </div>
-            <div class="field-group">
-                {{ form.cpf.errors }}
-                <label for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }} *</label>
-                {{ form.cpf }}
-            </div>
-            <div class="field-group">
-                {{ form.telefone.errors }}
-                <label for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }} *</label>
-                {{ form.telefone }}
-            </div>
-            <div class="field-group">
-                {{ form.email.errors }}
-                <label for="{{ form.email.id_for_label }}">{{ form.email.label }} *</label>
-                {{ form.email }}
-            </div>
-            <div class="field-group full-width">
-                {{ form.endereco.errors }}
-                <label for="{{ form.endereco.id_for_label }}">{{ form.endereco.label }} *</label>
-                {{ form.endereco }}
-            </div>
-            <div class="form-actions full-width">
-                <button type="submit" class="btn btn-primary">Salvar beneficiário</button>
-            </div>
-        </form>
-    </details>
-    <form class="toolbar panel search-row single-search" method="get" action="{% url 'beneficiarios' %}">
-        <div class="search-input"><i class="icon icon-search"></i><input type="search" name="q" value="{{ filtro_q }}" placeholder="Buscar por nome, e-mail ou telefone…"></div>
-        <button type="submit" class="btn btn-secondary"><i class="icon icon-search"></i>Buscar</button>
-        {% if filtro_q %}<a class="btn btn-secondary" href="{% url 'beneficiarios' %}">Limpar</a>{% endif %}
-    </form>
-</section>
 
-<section class="card-grid">
-    {% for beneficiario in beneficiarios_cards %}
-    <article class="beneficiary-card panel">
-        <header>
-            <h3>{{ beneficiario.nome }}</h3>
-        </header>
-        <div class="beneficiary-info">
-            <p><i class="icon icon-phone"></i>{{ beneficiario.telefone }}</p>
-            <p><i class="icon icon-mail"></i>{{ beneficiario.email }}</p>
-            <p><i class="icon icon-map-pin"></i>{{ beneficiario.endereco }}</p>
+    <form class="card shadow-sm" method="get" action="{% url 'beneficiarios' %}">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-9">
+                    <label class="form-label visually-hidden" for="benef-busca">Buscar</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="icon icon-search"></i></span>
+                        <input type="search" class="form-control" id="benef-busca" name="q" value="{{ filtro_q }}" placeholder="Buscar por nome, e-mail ou telefone…">
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-outline-secondary"><i class="icon icon-search"></i>Buscar</button>
+                    {% if filtro_q %}<a class="btn btn-outline-secondary" href="{% url 'beneficiarios' %}">Limpar</a>{% endif %}
+                </div>
+            </div>
         </div>
-        <footer>
-            <span>Última distribuição</span>
-            <strong>{{ beneficiario.ultima_distribuicao }}</strong>
-        </footer>
-    </article>
+    </form>
+</div>
+
+<div class="row g-4">
+    {% for beneficiario in beneficiarios_cards %}
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body d-flex flex-column">
+                <h3 class="card-title fs-5 fw-bold">{{ beneficiario.nome }}</h3>
+                <div class="border-top pt-3 mt-2 flex-grow-1">
+                    <p class="mb-2 d-flex align-items-start gap-2"><i class="icon icon-phone text-secondary"></i>{{ beneficiario.telefone }}</p>
+                    <p class="mb-2 d-flex align-items-start gap-2"><i class="icon icon-mail text-secondary"></i>{{ beneficiario.email }}</p>
+                    <p class="mb-0 d-flex align-items-start gap-2"><i class="icon icon-map-pin text-secondary"></i>{{ beneficiario.endereco }}</p>
+                </div>
+                <div class="border-top pt-3 mt-3">
+                    <span class="text-secondary small d-block">Última distribuição</span>
+                    <strong>{{ beneficiario.ultima_distribuicao }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
     {% empty %}
-    <p class="page-subtitle">Nenhum beneficiário cadastrado. Use “Novo beneficiário” acima.</p>
+    <div class="col-12">
+        <p class="text-secondary">Nenhum beneficiário cadastrado. Use “Novo beneficiário” acima.</p>
+    </div>
     {% endfor %}
-</section>
+</div>
 {% endblock %}

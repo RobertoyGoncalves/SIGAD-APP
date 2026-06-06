@@ -1,60 +1,78 @@
 {% extends 'sigad_app/base.html' %}
 {% block title %}Registrar Distribuição | SIGAD{% endblock %}
 {% block content %}
-<section class="page-intro narrow">
-    <h2 class="page-title">Registrar Distribuição</h2>
-    <p class="page-subtitle">Registre a saída de itens do estoque para um beneficiário.</p>
-</section>
-
-<form method="post" action="{% url 'registrar_distribuicao' %}" class="stack narrow" id="form-distribuicao">
-    {% csrf_token %}
-    <input type="hidden" name="linhas_json" id="linhas_json" value="[]">
-
-    <div class="form-card">
-        <div class="field-group full-width">
-            <label for="beneficiario_id">Beneficiário *</label>
-            <select name="beneficiario_id" id="beneficiario_id" required>
-                <option value="">Selecione…</option>
-                {% for b in beneficiarios_opts %}
-                <option value="{{ b.id }}">{{ b.nome }}</option>
-                {% endfor %}
-            </select>
-            {% if not beneficiarios_opts %}
-            <p class="page-subtitle" style="margin-top:8px">Cadastre um beneficiário antes de registrar distribuições.</p>
-            {% endif %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="text-center mb-4">
+            <h1 class="fs-3 fw-bold mb-1">Registrar Distribuição</h1>
+            <p class="text-secondary mb-0">Registre a saída de itens do estoque para um beneficiário.</p>
         </div>
-    </div>
 
-    <div class="form-card">
-        <h3 class="section-title">Itens da distribuição</h3>
-        <div class="inline-field-row distrib-add-row">
-            <select id="dist_item_id" {% if not itens_opts %}disabled{% endif %}>
-                <option value="">Selecione o item…</option>
-                {% for it in itens_opts %}
-                <option value="{{ it.id }}">{{ it.label }}</option>
-                {% endfor %}
-            </select>
-            <input type="number" id="dist_qtd" min="1" value="1" class="dist-qtd-input" aria-label="Quantidade" {% if not itens_opts %}disabled{% endif %}>
-            <button class="btn btn-primary" type="button" id="dist_add_btn" {% if not itens_opts %}disabled{% endif %}><i class="icon icon-plus"></i>Adicionar</button>
-        </div>
-        <div id="dist_list_wrap" class="dist-list-wrap {% if not itens_opts %}is-empty{% endif %}">
-            <table class="dist-lines-table" id="dist_lines_table" hidden>
-                <thead>
-                    <tr><th>Item</th><th>Qtd</th><th></th></tr>
-                </thead>
-                <tbody id="dist_lines_body"></tbody>
-            </table>
-            <div class="empty-box" id="dist_empty">
-                <strong>Nenhum item adicionado</strong>
-                <p>Selecione o item, a quantidade e clique em Adicionar.</p>
+        <form method="post" action="{% url 'registrar_distribuicao' %}" id="form-distribuicao">
+            {% csrf_token %}
+            <input type="hidden" name="linhas_json" id="linhas_json" value="[]">
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="beneficiario_id" class="form-label">Beneficiário *</label>
+                        <select name="beneficiario_id" id="beneficiario_id" class="form-select" required>
+                            <option value="">Selecione…</option>
+                            {% for b in beneficiarios_opts %}
+                            <option value="{{ b.id }}">{{ b.nome }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if not beneficiarios_opts %}
+                        <p class="text-secondary small mt-2 mb-0">Cadastre um beneficiário antes de registrar distribuições.</p>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div class="action-row">
-        <button class="btn btn-primary full-grow" type="submit" {% if not beneficiarios_opts or not itens_opts %}disabled{% endif %}>Confirmar distribuição</button>
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h3 class="fs-6 fw-semibold mb-3">Itens da distribuição</h3>
+                    <div class="row g-3 align-items-end mb-3">
+                        <div class="col-md-6">
+                            <label for="dist_item_id" class="form-label visually-hidden">Item</label>
+                            <select id="dist_item_id" class="form-select" {% if not itens_opts %}disabled{% endif %}>
+                                <option value="">Selecione o item…</option>
+                                {% for it in itens_opts %}
+                                <option value="{{ it.id }}">{{ it.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dist_qtd" class="form-label visually-hidden">Quantidade</label>
+                            <input type="number" id="dist_qtd" min="1" value="1" class="form-control" aria-label="Quantidade" {% if not itens_opts %}disabled{% endif %}>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary w-100" type="button" id="dist_add_btn" {% if not itens_opts %}disabled{% endif %}><i class="icon icon-plus"></i>Adicionar</button>
+                        </div>
+                    </div>
+                    <div id="dist_list_wrap" class="dist-list-wrap {% if not itens_opts %}is-empty{% endif %}">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-sm mb-0" id="dist_lines_table" hidden>
+                                <thead>
+                                    <tr><th>Item</th><th>Qtd</th><th></th></tr>
+                                </thead>
+                                <tbody id="dist_lines_body"></tbody>
+                            </table>
+                        </div>
+                        <div class="empty-box border rounded-3 p-4 text-center text-secondary" id="dist_empty">
+                            <strong class="d-block text-dark">Nenhum item adicionado</strong>
+                            <p class="mb-0 small">Selecione o item, a quantidade e clique em Adicionar.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid">
+                <button class="btn btn-primary btn-lg" type="submit" {% if not beneficiarios_opts or not itens_opts %}disabled{% endif %}>Confirmar distribuição</button>
+            </div>
+        </form>
     </div>
-</form>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -92,7 +110,7 @@
             var td3 = document.createElement('td');
             var btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'btn btn-secondary';
+            btn.className = 'btn btn-sm btn-outline-secondary';
             btn.textContent = 'Remover';
             btn.addEventListener('click', function () {
                 lines.splice(idx, 1);

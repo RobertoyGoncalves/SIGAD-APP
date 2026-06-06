@@ -1,4 +1,4 @@
-# sigad — gestao de doacoes
+# SIGAD-APP
 
 projeto django com telas para estoque, beneficiarios e distribuicoes.
 
