@@ -34,21 +34,31 @@ def _secret_key_from_env() -> str:
 SECRET_KEY = _secret_key_from_env()
 
 
+def _is_truthy(val: str) -> bool:
+    return val.strip().lower() in ('1', 'true', 'yes', 'on')
+
+
 def _postgres_from_url(url: str) -> dict:
     u = urlparse(url.strip())
     if u.scheme not in ('postgres', 'postgresql'):
         raise ValueError('DATABASE_URL deve começar com postgres:// ou postgresql://')
     name = (u.path or '').lstrip('/') or 'postgres'
-    return {
+    host = u.hostname or ''
+    sslmode = os.getenv('DATABASE_SSLMODE', '').strip()
+    if not sslmode:
+        sslmode = 'disable' if host.endswith('.railway.internal') else 'require'
+    config = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': name,
         'USER': unquote(u.username or ''),
         'PASSWORD': unquote(u.password or ''),
-        'HOST': u.hostname or '',
+        'HOST': host,
         'PORT': str(u.port or 5432),
-        'OPTIONS': {'sslmode': 'require'},
         'CONN_MAX_AGE': 60,
     }
+    if sslmode != 'disable':
+        config['OPTIONS'] = {'sslmode': sslmode}
+    return config
 
 
 def _postgres_from_env() -> dict | None:
@@ -68,7 +78,7 @@ def _postgres_from_env() -> dict | None:
         'OPTIONS': {'sslmode': 'require'},
         'CONN_MAX_AGE': 60,
     }
-DEBUG = os.getenv('DEBUG', 'True').strip().lower() in ('1', 'true', 'yes', 'on')
+DEBUG = _is_truthy(os.getenv('DEBUG', 'True'))
 
 ALLOWED_HOSTS = [
     h.strip()
@@ -76,24 +86,30 @@ ALLOWED_HOSTS = [
     if h.strip()
 ]
 _render_host = os.getenv('RENDER_EXTERNAL_HOSTNAME', '').strip()
-if _render_host and _render_host not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append(_render_host)
+_railway_host = os.getenv('RAILWAY_PUBLIC_DOMAIN', '').strip()
+_on_railway = bool(os.getenv('RAILWAY_ENVIRONMENT', '').strip()) or bool(_railway_host)
+
+for _auto_host in (_render_host, _railway_host):
+    if _auto_host and _auto_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_auto_host)
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-if os.getenv('RENDER', '').strip().lower() in ('1', 'true', 'yes'):
+_csrf_origins: list[str] = []
+if _render_host:
+    _csrf_origins.append(f'https://{_render_host}')
+if _railway_host:
+    _csrf_origins.append(f'https://{_railway_host}')
+if extra := os.getenv('CSRF_TRUSTED_ORIGINS', '').strip():
+    for origin in extra.split(','):
+        origin = origin.strip()
+        if origin and origin not in _csrf_origins:
+            _csrf_origins.append(origin)
+if _csrf_origins:
+    CSRF_TRUSTED_ORIGINS = _csrf_origins
+
+if _is_truthy(os.getenv('RENDER', '')) or _on_railway:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    if _render_host:
-        origin = f'https://{_render_host}'
-        CSRF_TRUSTED_ORIGINS = [origin]
-        if os.getenv('CSRF_TRUSTED_ORIGINS'):
-            CSRF_TRUSTED_ORIGINS.extend(
-                x.strip()
-                for x in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
-                if x.strip() and x.strip() not in CSRF_TRUSTED_ORIGINS
-            )
-elif (extra := os.getenv('CSRF_TRUSTED_ORIGINS', '').strip()):
-    CSRF_TRUSTED_ORIGINS = [x.strip() for x in extra.split(',') if x.strip()]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -155,5 +171,15 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'sigad_app' / 'static']
+
+if not DEBUG:
+    STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+        },
+    }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

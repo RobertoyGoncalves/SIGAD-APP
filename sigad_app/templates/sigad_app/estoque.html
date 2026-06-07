@@ -1,23 +1,23 @@
 {% extends 'sigad_app/base.html' %}
 {% block title %}Estoque | SIGAD{% endblock %}
 {% block content %}
-<div class="mb-4">
-    <h1 class="fs-3 fw-bold mb-1">Estoque</h1>
-    <p class="text-secondary mb-3">Visualize e gerencie todos os itens em estoque</p>
+<div class="page-header">
+    <h1 class="section-title">Estoque</h1>
+    <p class="section-subtitle mb-3">Visualize e gerencie todos os itens em estoque</p>
 
-    <form class="card shadow-sm" method="get" action="{% url 'estoque' %}">
+    <form class="sigad-card mb-4" method="get" action="{% url 'estoque' %}">
         <div class="card-body">
             <div class="row g-3 align-items-end">
                 <div class="col-md-5">
                     <label class="form-label visually-hidden" for="estoque-busca">Buscar</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="icon icon-search"></i></span>
-                        <input type="search" class="form-control" id="estoque-busca" name="q" value="{{ filtro_q }}" placeholder="Buscar por item ou doador…">
+                        <input type="search" class="form-control sigad-input" id="estoque-busca" name="q" value="{{ filtro_q }}" placeholder="Buscar por item ou doador…">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label visually-hidden" for="estoque-categoria">Categoria</label>
-                    <select class="form-select" id="estoque-categoria" name="categoria" aria-label="Filtrar por categoria">
+                    <select class="form-select sigad-input" id="estoque-categoria" name="categoria" aria-label="Filtrar por categoria">
                         <option value="">Todas as categorias</option>
                         {% for val, lab in categorias_filtro %}
                         <option value="{{ val }}" {% if filtro_categoria == val %}selected{% endif %}>{{ lab }}</option>
@@ -25,19 +25,19 @@
                     </select>
                 </div>
                 <div class="col-md-3 d-flex flex-wrap gap-2">
-                    <button type="submit" class="btn btn-outline-secondary"><i class="icon icon-search"></i>Filtrar</button>
-                    {% if filtro_q or filtro_categoria %}<a class="btn btn-outline-secondary" href="{% url 'estoque' %}">Limpar</a>{% endif %}
+                    <button type="submit" class="btn-sigad-ghost"><i class="icon icon-search"></i>Filtrar</button>
+                    {% if filtro_q or filtro_categoria %}<a class="btn-sigad-ghost" href="{% url 'estoque' %}">Limpar</a>{% endif %}
                 </div>
             </div>
         </div>
     </form>
 </div>
 
-<div class="card shadow-sm mb-3">
+<div class="sigad-card mb-3">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
-                <thead class="table-dark">
+            <table class="sigad-table">
+                <thead>
                     <tr>
                         <th>Item</th>
                         <th>Categoria</th>
@@ -52,7 +52,7 @@
                     <tr>
                         <td>{{ item.nome }}</td>
                         <td>
-                            <span class="badge {% if item.badge == 'green' %}bg-success{% elif item.badge == 'blue' %}bg-primary{% elif item.badge == 'purple' %}badge-purple{% else %}bg-secondary{% endif %}">
+                            <span class="badge-sigad {% if item.badge == 'green' %}badge-success{% elif item.badge == 'blue' %}badge-info{% elif item.badge == 'purple' %}badge-purple{% else %}badge-neutral{% endif %}">
                                 {{ item.categoria }}
                             </span>
                         </td>
@@ -63,7 +63,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center text-secondary py-4">Nenhum item encontrado com os filtros atuais.</td>
+                        <td colspan="6" class="empty-row">Nenhum item encontrado com os filtros atuais.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -72,10 +72,10 @@
     </div>
 </div>
 
-<div class="card shadow-sm">
+<div class="sigad-card">
     <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
         <span class="text-secondary">Total de unidades em estoque (lista atual):</span>
-        <strong class="fs-5">{{ total_estoque }} unidades</strong>
+        <strong class="fs-5 text-primary-sigad">{{ total_estoque }} unidades</strong>
     </div>
 </div>
 {% endblock %}

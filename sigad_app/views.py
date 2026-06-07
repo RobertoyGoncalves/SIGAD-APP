@@ -77,6 +77,37 @@ def _human_tempo(dt):
     return 'agora'
 
 
+def landing(request):
+    total_itens = ItemEstoque.objects.count()
+    total_unidades = int(
+        ItemEstoque.objects.aggregate(s=Sum('quantidade'))['s'] or 0
+    )
+    total_beneficiarios = Beneficiario.objects.count()
+    total_distribuicoes = Distribuicao.objects.count()
+
+    context = {
+        'stats': [
+            {
+                'value': _fmt_br_int(total_itens) if total_itens else '0',
+                'label': 'Itens cadastrados',
+            },
+            {
+                'value': _fmt_br_int(total_unidades) if total_unidades else '0',
+                'label': 'Unidades em estoque',
+            },
+            {
+                'value': _fmt_br_int(total_beneficiarios) if total_beneficiarios else '0',
+                'label': 'Beneficiários',
+            },
+            {
+                'value': _fmt_br_int(total_distribuicoes) if total_distribuicoes else '0',
+                'label': 'Distribuições registradas',
+            },
+        ],
+    }
+    return render(request, 'sigad_app/landing.html', context)
+
+
 def dashboard(request):
     today = timezone.localdate()
     fim_validade = today + timedelta(days=7)

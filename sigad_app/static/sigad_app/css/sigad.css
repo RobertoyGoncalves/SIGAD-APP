@@ -1,0 +1,341 @@
+/* ══════════════════════════════════════════════════
+   SIGAD Design System — v1.0
+   Bootstrap 5.3.3 + Bootstrap Icons 1.11
+   Cor primária: #1E3A5F
+   ══════════════════════════════════════════════════ */
+
+/* ── 1. VARIÁVEIS ── */
+:root {
+  --primary:       #1E3A5F;
+  --primary-light: rgba(30, 58, 95, 0.10);
+  --primary-mid:   rgba(30, 58, 95, 0.20);
+  --primary-dark:  #162d4a;
+  --text-muted:    #717182;
+  --text-dark:     #1a1a2e;
+  --border-color:  rgba(0, 0, 0, 0.10);
+  --card-bg:       #ffffff;
+  --section-alt:   #f7f8fa;
+  --radius-sm:     8px;
+  --radius-md:     12px;
+  --radius-lg:     16px;
+  --radius-xl:     20px;
+  --shadow-sm:     0 2px 8px  rgba(30,58,95,0.08);
+  --shadow-md:     0 8px 24px rgba(30,58,95,0.12);
+  --shadow-lg:     0 16px 48px rgba(30,58,95,0.16);
+  --bs-primary:    #1E3A5F;
+  --bs-primary-rgb: 30, 58, 95;
+  --bs-link-color: #1E3A5F;
+  --bs-link-hover-color: #162d4a;
+}
+
+/* ── 2. BASE ── */
+html  { scroll-behavior: smooth; }
+
+body.app-page {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--text-dark);
+  background: var(--section-alt);
+  overflow-x: hidden;
+}
+
+/* ── 3. NAVBAR (app interno) ── */
+body.app-page #navbar {
+  transition: background 0.3s, box-shadow 0.3s;
+  background: #fff;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.navbar-brand .brand-icon {
+  width: 32px; height: 32px;
+  background: var(--primary);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+body.app-page #navbar .nav-link {
+  color: var(--text-muted) !important;
+  font-weight: 500;
+  transition: color 0.2s;
+  padding: 6px 12px !important;
+}
+
+body.app-page #navbar .nav-link:hover,
+body.app-page #navbar .nav-link.active {
+  color: var(--primary) !important;
+}
+
+body.app-page #navbar .nav-link.active {
+  font-weight: 600;
+  border-bottom: 2px solid var(--primary);
+}
+
+body.app-page #navbar .navbar-brand {
+  color: var(--text-dark) !important;
+}
+
+/* ── 4. BOTÕES ── */
+.btn-sigad {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition: opacity 0.2s, transform 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  text-decoration: none;
+}
+.btn-sigad:hover {
+  opacity: 0.88;
+  transform: scale(1.02);
+  color: #fff;
+}
+.btn-sigad:active { transform: scale(0.98); }
+
+.btn-sigad-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  padding: 9px 22px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  text-decoration: none;
+}
+.btn-sigad-outline:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.btn-sigad-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  padding: 9px 22px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  text-decoration: none;
+}
+.btn-sigad-ghost:hover {
+  background: var(--section-alt);
+  color: var(--text-dark);
+}
+
+.btn-sigad-sm {
+  padding: 6px 14px;
+  font-size: 0.875rem;
+}
+
+.btn-sigad.btn-lg {
+  padding: 14px 28px;
+  font-size: 1.05rem;
+}
+
+/* ── 5. CARDS ── */
+.sigad-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.sigad-card .card-header {
+  background: var(--primary);
+  color: #fff;
+  padding: 16px 24px;
+  font-weight: 600;
+  border-bottom: none;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.sigad-card .card-header-light {
+  background: var(--card-bg);
+  color: var(--text-dark);
+  padding: 16px 24px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sigad-card .card-body { padding: 24px; }
+
+.sigad-card-hover {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+  height: 100%;
+}
+.sigad-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.kpi-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+  height: 100%;
+}
+.kpi-card .kpi-label {
+  font-size: 0.78rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted); margin-bottom: 6px;
+}
+.kpi-card .kpi-value {
+  font-size: 2rem; font-weight: 800; color: var(--text-dark); line-height: 1;
+}
+.kpi-card .kpi-delta {
+  font-size: 0.8rem; color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* ── 6. FORMULÁRIOS ── */
+.sigad-input {
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 14px !important;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #f9fafb !important;
+}
+.sigad-input:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--primary-light) !important;
+  background: #fff !important;
+  outline: none;
+}
+
+body.app-page .form-label {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.form-text { color: var(--text-muted); font-size: 0.8rem; }
+
+.field-group { margin-bottom: 20px; }
+
+/* ── 7. TABELAS ── */
+.sigad-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.92rem;
+  margin-bottom: 0;
+}
+.sigad-table thead th {
+  background: var(--section-alt);
+  color: var(--text-muted);
+  font-size: 0.75rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+}
+.sigad-table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+.sigad-table tbody tr:last-child td { border-bottom: none; }
+.sigad-table tbody tr:hover td { background: var(--primary-light); }
+
+.empty-row {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 48px 16px !important;
+  font-size: 0.95rem;
+}
+
+/* ── 8. BADGES ── */
+.badge-sigad {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 0.75rem; font-weight: 600;
+}
+.badge-sigad.badge-success { background: rgba(16,185,129,0.12); color: #059669; }
+.badge-sigad.badge-danger  { background: rgba(239,68,68,0.12);  color: #dc2626; }
+.badge-sigad.badge-warning { background: rgba(245,158,11,0.12); color: #d97706; }
+.badge-sigad.badge-info    { background: rgba(59,130,246,0.12); color: #2563eb; }
+.badge-sigad.badge-neutral { background: var(--primary-light);  color: var(--primary); }
+.badge-sigad.badge-purple  { background: rgba(126,34,206,0.12); color: #7e22ce; }
+
+/* ── 9. ALERTAS ── */
+.sigad-alert {
+  border: none;
+  border-left: 4px solid;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 14px 18px;
+  font-size: 0.92rem;
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 0.75rem;
+}
+.sigad-alert-success { background: rgba(16,185,129,0.08); border-color: #10b981; color: #065f46; }
+.sigad-alert-danger  { background: rgba(239,68,68,0.08);  border-color: #ef4444; color: #991b1b; }
+.sigad-alert-warning { background: rgba(245,158,11,0.08); border-color: #f59e0b; color: #92400e; }
+.sigad-alert-info    { background: rgba(59,130,246,0.08); border-color: #3b82f6; color: #1e40af; }
+
+/* ── 10. SEÇÕES ── */
+.page-header { margin-bottom: 1.5rem; }
+
+.section-title {
+  font-size: clamp(1.4rem, 2.5vw, 1.875rem);
+  font-weight: 800; color: var(--text-dark);
+  letter-spacing: -0.01em;
+  margin-bottom: 0.25rem;
+}
+.section-subtitle {
+  font-size: 0.95rem; color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+.section-alt { background: var(--section-alt); }
+.section-primary-soft { background: var(--primary-light); }
+
+/* ── 11. DIVIDER ── */
+.sigad-divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 32px 0;
+}
+
+/* ── 12. FOOTER ── */
+.sigad-footer {
+  background: var(--card-bg);
+  border-top: 1px solid var(--border-color);
+}
+.sigad-footer-copy { color: var(--text-muted); font-size: 0.82rem; }
+
+/* ── 13. NAV PILLS (relatórios) ── */
+body.app-page .nav-pills .nav-link {
+  color: var(--text-muted);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+body.app-page .nav-pills .nav-link.active {
+  background: var(--primary);
+}
+
+/* ── 14. UTILITÁRIOS ── */
+.text-primary-sigad { color: var(--primary) !important; }
+.bg-primary-sigad   { background: var(--primary) !important; }
+.bg-primary-light   { background: var(--primary-light) !important; }
+
+.shadow-sigad-sm { box-shadow: var(--shadow-sm) !important; }
+
+/* ── 15. RESPONSIVO ── */
+@media (max-width: 767px) {
+  .sigad-card .card-body { padding: 16px; }
+  .kpi-card .kpi-value { font-size: 1.6rem; }
+  .section-title { font-size: 1.35rem; }
+}

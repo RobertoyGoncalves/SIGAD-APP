@@ -1,0 +1,418 @@
+{% extends 'sigad_app/landing_base.html' %}
+
+{% block body %}
+<nav id="landing-navbar" class="navbar navbar-expand-md fixed-top py-3 navbar-dark">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="{% url 'landing' %}">
+            <div class="brand-icon">
+                <i class="bi bi-box-seam text-white"></i>
+            </div>
+            SIGAD
+        </a>
+
+        <button class="navbar-toggler border-0" type="button"
+            data-bs-toggle="collapse" data-bs-target="#navContent"
+            aria-controls="navContent" aria-expanded="false" aria-label="Alternar menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navContent">
+            <ul class="navbar-nav ms-auto align-items-md-center gap-md-3 gap-2 mt-3 mt-md-0">
+                <li class="nav-item"><a class="nav-link" href="#features">Recursos</a></li>
+                <li class="nav-item"><a class="nav-link" href="#benefits">Benefícios</a></li>
+                <li class="nav-item"><a class="nav-link" href="#testimonials">Depoimentos</a></li>
+                <li class="nav-item"><a class="nav-link" href="#pricing">Planos</a></li>
+                <li class="nav-item mt-2 mt-md-0">
+                    <a class="btn-primary-custom text-decoration-none" href="{% url 'dashboard' %}">Começar agora</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<section id="hero">
+    <div id="particles" aria-hidden="true"></div>
+
+    <div class="container text-center position-relative hero-content">
+        <div class="fade-up">
+            <div class="hero-badge">
+                <i class="bi bi-stars"></i>
+                Sistema completo para ONGs
+            </div>
+        </div>
+
+        <h1 class="hero-title fade-up delay-1 mb-4">
+            Gerencie suas doações<br>
+            <span class="accent">com inteligência</span>
+        </h1>
+
+        <p class="hero-subtitle fade-up delay-2 mb-5 mx-auto">
+            O SIGAD é a solução Django para controle de estoque, beneficiários e distribuições —
+            desenvolvido para organizações que precisam de transparência e agilidade.
+        </p>
+
+        <div class="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-3 mb-5 fade-up delay-3">
+            <a href="{% url 'dashboard' %}" class="btn-hero-primary text-decoration-none">
+                Acessar o sistema
+                <i class="bi bi-arrow-right"></i>
+            </a>
+            <a href="#features" class="btn-hero-secondary text-decoration-none">
+                Ver recursos
+            </a>
+        </div>
+
+        <div class="app-mockup fade-up delay-4">
+            <div class="mockup-bar">
+                <div class="dot dot-red"></div>
+                <div class="dot dot-yellow"></div>
+                <div class="dot dot-green"></div>
+            </div>
+            <div class="mockup-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-4"><div class="mock-bar"></div></div>
+                    <div class="col-4"><div class="mock-bar opacity-75"></div></div>
+                    <div class="col-4"><div class="mock-bar opacity-75"></div></div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-3"><div class="mock-card"></div></div>
+                    <div class="col-3"><div class="mock-card opacity-75"></div></div>
+                    <div class="col-3"><div class="mock-card opacity-75"></div></div>
+                    <div class="col-3"><div class="mock-card opacity-50"></div></div>
+                    <div class="col-3"><div class="mock-card opacity-75"></div></div>
+                    <div class="col-3"><div class="mock-card opacity-50"></div></div>
+                    <div class="col-3"><div class="mock-card opacity-75"></div></div>
+                    <div class="col-3"><div class="mock-card opacity-50"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="stats-section py-5">
+    <div class="container">
+        <div class="row row-cols-2 row-cols-md-4 g-4 text-center">
+            {% for stat in stats %}
+            <div class="col fade-up{% if forloop.counter > 1 %} delay-{{ forloop.counter0 }}{% endif %}">
+                <div class="stat-number">{{ stat.value }}</div>
+                <div class="stat-label">{{ stat.label }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section id="features" class="landing-section">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <h2 class="fw-bold fs-1 mb-3">Recursos do SIGAD</h2>
+            <p class="text-secondary fs-5 mx-auto features-intro">
+                Funcionalidades reais do sistema para gerenciar doações de ponta a ponta
+            </p>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="col fade-up">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-box-seam-fill"></i></div>
+                    <h5>Registro de itens</h5>
+                    <p>Cadastre entradas com categoria, quantidade, validade, doador e observações.</p>
+                </div>
+            </div>
+            <div class="col fade-up delay-1">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-search"></i></div>
+                    <h5>Estoque com filtros</h5>
+                    <p>Busque itens por nome ou doador e filtre por categoria em tempo real.</p>
+                </div>
+            </div>
+            <div class="col fade-up delay-2">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-people-fill"></i></div>
+                    <h5>Beneficiários</h5>
+                    <p>Cadastre e gerencie beneficiários com busca por nome, e-mail ou telefone.</p>
+                </div>
+            </div>
+            <div class="col fade-up delay-3">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-arrow-left-right"></i></div>
+                    <h5>Distribuições</h5>
+                    <p>Registre saídas de itens do estoque para beneficiários com múltiplas linhas por operação.</p>
+                </div>
+            </div>
+            <div class="col fade-up delay-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-bar-chart-fill"></i></div>
+                    <h5>Relatórios e gráficos</h5>
+                    <p>Visualize distribuições por semana, mês ou categoria com gráficos interativos.</p>
+                </div>
+            </div>
+            <div class="col fade-up delay-5">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-file-earmark-spreadsheet-fill"></i></div>
+                    <h5>Exportação Excel</h5>
+                    <p>Exporte relatórios de distribuição em planilha para prestação de contas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="benefits" class="benefits-section landing-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 fade-left">
+                <div class="section-badge">
+                    <i class="bi bi-heart-fill"></i>
+                    Feito para ONGs
+                </div>
+                <h2 class="fw-bold fs-1 mb-3">Por que escolher o SIGAD?</h2>
+                <p class="text-secondary fs-5 mb-4">
+                    Desenvolvido com Django para atender as necessidades de organizações que gerenciam doações no dia a dia.
+                </p>
+
+                <div class="benefit-item">
+                    <div class="benefit-check"><i class="bi bi-check-lg"></i></div>
+                    <span>Dashboard com indicadores e atividades recentes</span>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-check"><i class="bi bi-check-lg"></i></div>
+                    <span>Interface web responsiva com Bootstrap 5</span>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-check"><i class="bi bi-check-lg"></i></div>
+                    <span>Transparência nas entradas e saídas do estoque</span>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-check"><i class="bi bi-check-lg"></i></div>
+                    <span>Controle de validade para reduzir desperdícios</span>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-check"><i class="bi bi-check-lg"></i></div>
+                    <span>Relatórios prontos para documentação institucional</span>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-check"><i class="bi bi-check-lg"></i></div>
+                    <span>Código aberto — projeto acadêmico extensível</span>
+                </div>
+            </div>
+
+            <div class="col-lg-6 fade-right">
+                <div class="row g-4">
+                    <div class="col-6">
+                        <div class="mini-card">
+                            <i class="bi bi-lightning-charge-fill"></i>
+                            <h6>Rápido</h6>
+                            <p>Fluxos diretos para cadastro e distribuição</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mini-card-offset">
+                        <div class="mini-card">
+                            <i class="bi bi-clock-fill"></i>
+                            <h6>Eficiente</h6>
+                            <p>Menos planilhas, mais controle centralizado</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mini-card">
+                            <i class="bi bi-shield-check-fill"></i>
+                            <h6>Confiável</h6>
+                            <p>Dados persistidos em banco relacional</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mini-card-offset">
+                        <div class="mini-card">
+                            <i class="bi bi-graph-up-arrow"></i>
+                            <h6>Escalável</h6>
+                            <p>Arquitetura Django pronta para evoluir</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="testimonials" class="landing-section">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <h2 class="fw-bold fs-1 mb-3">O que dizem nossas ONGs</h2>
+            <p class="text-secondary fs-5">Transformando a gestão de estoque em centenas de organizações</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4 fade-up">
+                <div class="testimonial-card">
+                    <div class="stars mb-1">★★★★★</div>
+                    <p class="testimonial-text">
+                        "O SIGAD transformou completamente nossa gestão. Antes perdíamos horas com planilhas, agora tudo é rápido e organizado."
+                    </p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="avatar">MS</div>
+                        <div>
+                            <div class="testimonial-name">Maria Silva</div>
+                            <div class="testimonial-role">Coordenadora – ONG Amigos da Vida</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 fade-up delay-1">
+                <div class="testimonial-card">
+                    <div class="stars mb-1">★★★★★</div>
+                    <p class="testimonial-text">
+                        "Excelente ferramenta! A facilidade de gerar relatórios para prestação de contas economiza muito tempo da equipe."
+                    </p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="avatar">JS</div>
+                        <div>
+                            <div class="testimonial-name">João Santos</div>
+                            <div class="testimonial-role">Diretor – Instituto Esperança</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 fade-up delay-2">
+                <div class="testimonial-card">
+                    <div class="stars mb-1">★★★★★</div>
+                    <p class="testimonial-text">
+                        "Recomendo! Sistema intuitivo, suporte excepcional e ainda é gratuito. Perfeito para ONGs como a nossa."
+                    </p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="avatar">AC</div>
+                        <div>
+                            <div class="testimonial-name">Ana Costa</div>
+                            <div class="testimonial-role">Gestora – Projeto Social Futuro</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="pricing" class="pricing-section landing-section">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <h2 class="fw-bold fs-1 mb-3">Planos para toda ONG</h2>
+            <p class="text-secondary fs-5">Escolha o plano ideal para o tamanho da sua organização</p>
+        </div>
+
+        <div class="row g-4 justify-content-center pricing-row">
+            <div class="col-md-4 fade-up">
+                <div class="pricing-card">
+                    <h4 class="fw-bold mb-1">Starter</h4>
+                    <p class="text-secondary mb-4">Para pequenas ONGs</p>
+                    <div class="price mb-4">Grátis</div>
+                    <div class="pricing-feature"><i class="bi bi-check-circle-fill"></i> Até 1.000 itens</div>
+                    <div class="pricing-feature"><i class="bi bi-check-circle-fill"></i> 3 usuários</div>
+                    <div class="pricing-feature"><i class="bi bi-check-circle-fill"></i> Relatórios básicos</div>
+                    <div class="pricing-feature mb-4"><i class="bi bi-check-circle-fill"></i> Suporte por email</div>
+                    <a href="{% url 'dashboard' %}" class="btn btn-plan btn-plan-outline text-decoration-none d-inline-block text-center">Começar grátis</a>
+                </div>
+            </div>
+
+            <div class="col-md-4 fade-up delay-1">
+                <div class="pricing-card featured">
+                    <span class="popular-badge">Popular</span>
+                    <h4 class="fw-bold mb-1">Pro</h4>
+                    <p class="text-muted-custom mb-4">Para ONGs em crescimento</p>
+                    <div class="price mb-1">R$ 99</div>
+                    <div class="price-period mb-4">/mês</div>
+                    <div class="pricing-feature"><i class="bi bi-check-circle-fill"></i> Até 10.000 itens</div>
+                    <div class="pricing-feature"><i class="bi bi-check-circle-fill"></i> 10 usuários</div>
+                    <div class="pricing-feature"><i class="bi bi-check-circle-fill"></i> Relatórios avançados</div>
+                    <div class="pricing-feature"><i class="bi bi-check-circle-fill"></i> Alertas inteligentes</div>
+                    <div class="pricing-feature mb-4"><i class="bi bi-check-circle-fill"></i> Suporte prioritário</div>
+                    <a href="{% url 'dashboard' %}" class="btn btn-plan btn-plan-white text-decoration-none d-inline-block text-center">Começar agora</a>
+                </div>
+            </div>
+
+            <div class="col-md-4 fade-up delay-2">
+                <div class="pricing-card">
+                    <h4 class="fw-bold mb-1">Enterprise</h4>
+                    <p class="text-secondary mb-4">Para grandes organizações</p>
+                    <div class="price mb-4">Custom</div>
+                    <div class="pricing-feature"><i class="bi bi-check-circle-fill"></i> Itens ilimitados</div>
+                    <div class="pricing-feature"><i class="bi bi-check-circle-fill"></i> Usuários ilimitados</div>
+                    <div class="pricing-feature"><i class="bi bi-check-circle-fill"></i> Personalização completa</div>
+                    <div class="pricing-feature"><i class="bi bi-check-circle-fill"></i> API dedicada</div>
+                    <div class="pricing-feature mb-4"><i class="bi bi-check-circle-fill"></i> Suporte 24/7</div>
+                    <a href="{% url 'dashboard' %}" class="btn btn-plan btn-plan-outline text-decoration-none d-inline-block text-center">Falar com vendas</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="landing-section">
+    <div class="container">
+        <div class="cta-section fade-up">
+            <div class="position-relative cta-content">
+                <h2 class="text-white fw-bold fs-1 mb-3">
+                    Pronto para transformar sua gestão?
+                </h2>
+                <p class="text-white mb-5 fs-5 opacity-90">
+                    Acesse o SIGAD e comece a gerenciar suas doações agora
+                </p>
+                <div class="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-3">
+                    <a href="{% url 'dashboard' %}" class="btn-cta-white text-decoration-none">
+                        Acessar o sistema
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                    <a href="#features" class="btn-cta-outline text-decoration-none">
+                        Conhecer recursos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="landing-footer py-5">
+    <div class="container">
+        <div class="row g-5 mb-5">
+            <div class="col-md-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="brand-icon">
+                        <i class="bi bi-box-seam text-white"></i>
+                    </div>
+                    <span class="fw-bold">SIGAD</span>
+                </div>
+                <p class="text-secondary small">Sistema de Gestão de Doações para ONGs</p>
+            </div>
+            <div class="col-6 col-md-2 offset-md-2">
+                <h6>Produto</h6>
+                <ul>
+                    <li><a href="#features">Recursos</a></li>
+                    <li><a href="#pricing">Preços</a></li>
+                    <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                </ul>
+            </div>
+            <div class="col-6 col-md-2">
+                <h6>Sistema</h6>
+                <ul>
+                    <li><a href="{% url 'estoque' %}">Estoque</a></li>
+                    <li><a href="{% url 'beneficiarios' %}">Beneficiários</a></li>
+                    <li><a href="{% url 'relatorios' %}">Relatórios</a></li>
+                </ul>
+            </div>
+            <div class="col-6 col-md-2">
+                <h6>Acesso</h6>
+                <ul>
+                    <li><a href="{% url 'registrar_item' %}">Registrar item</a></li>
+                    <li><a href="{% url 'registrar_distribuicao' %}">Distribuição</a></li>
+                    <li><a href="{% url 'dashboard' %}">Entrar</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="border-top pt-4 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+            <p class="text-secondary small mb-0">© 2026 SIGAD. Todos os direitos reservados.</p>
+            <div class="d-flex gap-3">
+                <a href="#" class="text-secondary fs-5" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+                <a href="https://github.com/RobertoyGoncalves/SIGAD-APP" class="text-secondary fs-5" aria-label="GitHub" target="_blank" rel="noopener noreferrer"><i class="bi bi-github"></i></a>
+                <a href="#" class="text-secondary fs-5" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+            </div>
+        </div>
+    </div>
+</footer>
+{% endblock %}
