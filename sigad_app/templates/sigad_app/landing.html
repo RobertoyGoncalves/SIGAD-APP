@@ -390,16 +390,15 @@
             <div class="col-6 col-md-2">
                 <h6>Sistema</h6>
                 <ul>
-                    <li><a href="{% url 'estoque' %}">Estoque</a></li>
-                    <li><a href="{% url 'beneficiarios' %}">Beneficiários</a></li>
-                    <li><a href="{% url 'relatorios' %}">Relatórios</a></li>
+                    <li><a href="{% url 'item_estoque_list' %}">Estoque</a></li>
+                    <li><a href="{% url 'beneficiario_list' %}">Beneficiários</a></li>
                 </ul>
             </div>
             <div class="col-6 col-md-2">
                 <h6>Acesso</h6>
                 <ul>
-                    <li><a href="{% url 'registrar_item' %}">Registrar item</a></li>
-                    <li><a href="{% url 'registrar_distribuicao' %}">Distribuição</a></li>
+                    <li><a href="{% url 'item_estoque_create' %}">Registrar item</a></li>
+                    <li><a href="{% url 'distribuicao_create' %}">Distribuição</a></li>
                     <li><a href="{% url 'dashboard' %}">Entrar</a></li>
                 </ul>
             </div>
