@@ -1,31 +1,47 @@
 {% extends 'sigad_app/base.html' %}
 {% block title %}{{ titulo }} | SIGAD{% endblock %}
 {% block content %}
-<div class="page-header mb-4">
+<div class="mb-4">
     <h1 class="section-title">{{ titulo }}</h1>
 </div>
 
 <div class="sigad-card">
     <div class="card-body p-4">
-        {% if object and not form.visible_fields %}
-        <p class="mb-4">Tem certeza que deseja excluir <strong>{{ object }}</strong>?</p>
-        {% endif %}
-        <form method="post" novalidate>
+        <form method="post">
             {% csrf_token %}
-            {% if form %}
             {% for field in form %}
             <div class="mb-3">
-                <label class="form-label fw-medium" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
+                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                    {{ field.label }}
+                </label>
+                {% if field.field.widget.input_type == 'select' %}
+                    <select name="{{ field.html_name }}" id="{{ field.id_for_label }}" class="form-select {% if field.errors %}is-invalid{% endif %}">
+                        {% for value, text in field.field.choices %}
+                        <option value="{{ value }}" {% if field.value == value %}selected{% endif %}>{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                {% elif field.field.widget.input_type == 'textarea' %}
+                    <textarea name="{{ field.html_name }}" id="{{ field.id_for_label }}" class="form-control {% if field.errors %}is-invalid{% endif %}" rows="4">{{ field.value|default:'' }}</textarea>
+                {% else %}
+                    <input 
+                        type="{{ field.field.widget.input_type }}"
+                        name="{{ field.html_name }}"
+                        id="{{ field.id_for_label }}"
+                        value="{{ field.value|default:'' }}"
+                        class="form-control {% if field.errors %}is-invalid{% endif %}"
+                    >
+                {% endif %}
                 {% if field.errors %}
-                <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                <div class="invalid-feedback">{{ field.errors|join:", " }}</div>
+                {% endif %}
+                {% if field.help_text %}
+                <div class="form-text">{{ field.help_text }}</div>
                 {% endif %}
             </div>
             {% endfor %}
-            {% endif %}
-            <div class="d-flex flex-wrap gap-2 mt-4">
-                <button type="submit" class="btn-sigad">{{ botao }}</button>
-                <a href="javascript:history.back()" class="btn-sigad-ghost">Cancelar</a>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">{{ botao }}</button>
+                <a href="javascript:history.back()" class="btn btn-outline-secondary">Cancelar</a>
             </div>
         </form>
     </div>
