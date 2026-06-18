@@ -1,0 +1,48 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}Estoque | SIGAD{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 page-header mb-4">
+    <div>
+        <h1 class="section-title">Estoque</h1>
+        <p class="section-subtitle">Itens cadastrados no estoque</p>
+    </div>
+    <a class="btn-sigad" href="{% url 'item_estoque_create' %}"><i class="icon icon-package-plus"></i>Cadastrar item</a>
+</div>
+
+<div class="sigad-card">
+    <div class="table-responsive">
+        <table class="table sigad-table mb-0">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Categoria</th>
+                    <th>Quantidade</th>
+                    <th>Unidade</th>
+                    <th>Validade</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in itens_estoque %}
+                <tr>
+                    <td>{{ item.nome }}</td>
+                    <td>{{ item.get_categoria_display }}</td>
+                    <td>{{ item.quantidade }}</td>
+                    <td>{{ item.unidade }}</td>
+                    <td>{{ item.validade|date:"d/m/Y"|default:"—" }}</td>
+                    <td class="text-end text-nowrap">
+                        <a class="btn-sigad-ghost btn-sm" href="{% url 'item_estoque_detail' item.pk %}">Ver</a>
+                        <a class="btn-sigad-outline btn-sm" href="{% url 'item_estoque_update' item.pk %}">Editar</a>
+                        <a class="btn-sigad-ghost btn-sm text-danger" href="{% url 'item_estoque_delete' item.pk %}">Excluir</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">Nenhum item no estoque.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

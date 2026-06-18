@@ -1,0 +1,44 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}Linhas de Distribuição | SIGAD{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 page-header mb-4">
+    <div>
+        <h1 class="section-title">Linhas de Distribuição</h1>
+        <p class="section-subtitle">Itens vinculados às distribuições</p>
+    </div>
+    <a class="btn-sigad" href="{% url 'linha_distribuicao_create' %}"><i class="icon icon-list-plus"></i>Cadastrar</a>
+</div>
+
+<div class="sigad-card">
+    <div class="table-responsive">
+        <table class="table sigad-table mb-0">
+            <thead>
+                <tr>
+                    <th>Distribuição</th>
+                    <th>Item</th>
+                    <th>Quantidade</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for linha in linhas_distribuicao %}
+                <tr>
+                    <td>#{{ linha.distribuicao.pk }} — {{ linha.distribuicao.beneficiario.nome }}</td>
+                    <td>{{ linha.item_estoque.nome }}</td>
+                    <td>{{ linha.quantidade }}</td>
+                    <td class="text-end text-nowrap">
+                        <a class="btn-sigad-ghost btn-sm" href="{% url 'linha_distribuicao_detail' linha.pk %}">Ver</a>
+                        <a class="btn-sigad-outline btn-sm" href="{% url 'linha_distribuicao_update' linha.pk %}">Editar</a>
+                        <a class="btn-sigad-ghost btn-sm text-danger" href="{% url 'linha_distribuicao_delete' linha.pk %}">Excluir</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">Nenhuma linha cadastrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

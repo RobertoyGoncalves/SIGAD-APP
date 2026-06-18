@@ -1,0 +1,33 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}{{ titulo }} | SIGAD{% endblock %}
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="section-title">{{ titulo }}</h1>
+</div>
+
+<div class="sigad-card">
+    <div class="card-body p-4">
+        {% if object and not form.visible_fields %}
+        <p class="mb-4">Tem certeza que deseja excluir <strong>{{ object }}</strong>?</p>
+        {% endif %}
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% if form %}
+            {% for field in form %}
+            <div class="mb-3">
+                <label class="form-label fw-medium" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% endif %}
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                <button type="submit" class="btn-sigad">{{ botao }}</button>
+                <a href="javascript:history.back()" class="btn-sigad-ghost">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

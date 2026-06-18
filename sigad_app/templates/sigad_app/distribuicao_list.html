@@ -1,0 +1,44 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}Distribuições | SIGAD{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 page-header mb-4">
+    <div>
+        <h1 class="section-title">Distribuições</h1>
+        <p class="section-subtitle">Registros de distribuição para beneficiários</p>
+    </div>
+    <a class="btn-sigad" href="{% url 'distribuicao_create' %}"><i class="icon icon-arrow-right-left"></i>Cadastrar</a>
+</div>
+
+<div class="sigad-card">
+    <div class="table-responsive">
+        <table class="table sigad-table mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Beneficiário</th>
+                    <th>Registrado em</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for distribuicao in distribuicoes %}
+                <tr>
+                    <td>#{{ distribuicao.pk }}</td>
+                    <td>{{ distribuicao.beneficiario.nome }}</td>
+                    <td>{{ distribuicao.registrado_em|date:"d/m/Y H:i" }}</td>
+                    <td class="text-end text-nowrap">
+                        <a class="btn-sigad-ghost btn-sm" href="{% url 'distribuicao_detail' distribuicao.pk %}">Ver</a>
+                        <a class="btn-sigad-outline btn-sm" href="{% url 'distribuicao_update' distribuicao.pk %}">Editar</a>
+                        <a class="btn-sigad-ghost btn-sm text-danger" href="{% url 'distribuicao_delete' distribuicao.pk %}">Excluir</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">Nenhuma distribuição registrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

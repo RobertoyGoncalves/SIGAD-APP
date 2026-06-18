@@ -1,0 +1,34 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}{{ beneficiario.nome }} | SIGAD{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 page-header mb-4">
+    <div>
+        <h1 class="section-title">{{ beneficiario.nome }}</h1>
+        <p class="section-subtitle">Detalhes do beneficiário</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn-sigad-outline" href="{% url 'beneficiario_update' beneficiario.pk %}">Editar</a>
+        <a class="btn-sigad-ghost text-danger" href="{% url 'beneficiario_delete' beneficiario.pk %}">Excluir</a>
+        <a class="btn-sigad-ghost" href="{% url 'beneficiario_list' %}">Voltar</a>
+    </div>
+</div>
+
+<div class="sigad-card">
+    <div class="card-body p-4">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">CPF</dt>
+            <dd class="col-sm-9">{{ beneficiario.cpf }}</dd>
+            <dt class="col-sm-3">Telefone</dt>
+            <dd class="col-sm-9">{{ beneficiario.telefone }}</dd>
+            <dt class="col-sm-3">E-mail</dt>
+            <dd class="col-sm-9">{{ beneficiario.email }}</dd>
+            <dt class="col-sm-3">Endereço</dt>
+            <dd class="col-sm-9">{{ beneficiario.endereco }}</dd>
+            <dt class="col-sm-3">Última distribuição</dt>
+            <dd class="col-sm-9">{{ beneficiario.ultima_distribuicao|date:"d/m/Y"|default:"—" }}</dd>
+            <dt class="col-sm-3">Cadastrado em</dt>
+            <dd class="col-sm-9">{{ beneficiario.criado_em|date:"d/m/Y H:i" }}</dd>
+        </dl>
+    </div>
+</div>
+{% endblock %}

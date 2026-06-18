@@ -1,0 +1,28 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}Linha de Distribuição | SIGAD{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 page-header mb-4">
+    <div>
+        <h1 class="section-title">Linha de Distribuição</h1>
+        <p class="section-subtitle">{{ linha_distribuicao.item_estoque.nome }}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn-sigad-outline" href="{% url 'linha_distribuicao_update' linha_distribuicao.pk %}">Editar</a>
+        <a class="btn-sigad-ghost text-danger" href="{% url 'linha_distribuicao_delete' linha_distribuicao.pk %}">Excluir</a>
+        <a class="btn-sigad-ghost" href="{% url 'linha_distribuicao_list' %}">Voltar</a>
+    </div>
+</div>
+
+<div class="sigad-card">
+    <div class="card-body p-4">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Distribuição</dt>
+            <dd class="col-sm-9">#{{ linha_distribuicao.distribuicao.pk }} — {{ linha_distribuicao.distribuicao.beneficiario.nome }}</dd>
+            <dt class="col-sm-3">Item</dt>
+            <dd class="col-sm-9">{{ linha_distribuicao.item_estoque.nome }}</dd>
+            <dt class="col-sm-3">Quantidade</dt>
+            <dd class="col-sm-9">{{ linha_distribuicao.quantidade }}</dd>
+        </dl>
+    </div>
+</div>
+{% endblock %}
