@@ -1,6 +1,15 @@
 # SIGAD-APP
 
-Sistema Django de gestão de doações — estoque, beneficiários, distribuições e relatórios.
+Sistema Django de gestão de doações — estoque, beneficiários, beneficiados, distribuições e relatórios.
+
+## Glossário
+
+| Termo | Papel |
+|-------|-------|
+| **Beneficiário** | Quem **DOA** itens ao estoque |
+| **Beneficiado** | Quem **RECEBE** itens na distribuição |
+| **Doação** | Entrada de itens no estoque trazida por um beneficiário |
+| **Distribuição** | Saída de itens do estoque para um beneficiado |
 
 ## Executar localmente
 
@@ -16,14 +25,27 @@ Sistema Django de gestão de doações — estoque, beneficiários, distribuiç�
 
 ## Rotas principais
 
-- `/` — landing page
-- `/dashboard/` — painel do sistema
-- `/registrar-item/`
-- `/registrar-distribuicao/`
-- `/estoque/`
-- `/beneficiarios/`
-- `/relatorios/`
-- `/admin/`
+| URL | Nome | Descrição |
+|-----|------|-----------|
+| `/` | `landing` | Landing page pública |
+| `/dashboard/` | `dashboard` | Painel do sistema |
+| `/registrar-item/` | `registrar_item` | Cadastrar item no estoque (com select de beneficiário) |
+| `/estoque/` | `estoque` | Estoque com busca e filtro por categoria |
+| `/listar/itens-estoque/` | `item_estoque_list` | Listagem CRUD do estoque |
+| `/beneficiarios/` | `beneficiario_list` | Beneficiários com histórico de doações + criar inline |
+| `/editar/beneficiario/<pk>/` | `beneficiario_update` | Editar beneficiário |
+| `/excluir/beneficiario/<pk>/` | `beneficiario_delete` | Excluir beneficiário |
+| `/beneficiados/` | `beneficiado_list` | Listagem de beneficiados com busca |
+| `/cadastrar/beneficiado/` | `beneficiado_create` | Cadastrar beneficiado |
+| `/ver/beneficiado/<pk>/` | `beneficiado_detail` | Detalhe do beneficiado + histórico de distribuições |
+| `/editar/beneficiado/<pk>/` | `beneficiado_update` | Editar beneficiado |
+| `/excluir/beneficiado/<pk>/` | `beneficiado_delete` | Excluir beneficiado |
+| `/registrar-distribuicao/` | `registrar_distribuicao` | Registrar distribuição (select beneficiado + criar inline + baixa estoque) |
+| `/listar/distribuicoes/` | `distribuicao_list` | Listagem de distribuições |
+| `/ver/distribuicao/<pk>/` | `distribuicao_detail` | Detalhe da distribuição |
+| `/listar/linhas-distribuicao/` | `linha_distribuicao_list` | Linhas de distribuição |
+| `/relatorios/` | `relatorios` | Relatórios: semanal, mensal, por beneficiário, beneficiado e categoria + export xlsx |
+| `/admin/` | — | Django Admin |
 
 ## Deploy no Railway
 
@@ -46,8 +68,8 @@ O projeto inclui `railway.toml` e `Procfile` prontos para produção.
    - `SECRET_KEY` — chave aleatória longa (obrigatório)
    - `DEBUG` — `False`
 6. **Settings** → **Networking** → **Generate Domain**
-7. Aguardar o deploy (o domínio entra em `ALLOWED_HOSTS` e `CSRF` automaticamente)
-8. (Opcional) Criar admin: **Settings** → abrir shell/one-off ou usar CLI:
+7. Aguardar o deploy
+8. (Opcional) Criar admin:
    ```bash
    python manage.py createsuperuser
    ```
@@ -66,3 +88,9 @@ O arquivo `render.yaml` continua disponível como alternativa ao Railway.
 
 - **Local:** SQLite (padrão sem `DATABASE_URL`)
 - **Produção:** PostgreSQL via `DATABASE_URL`
+
+## Histórico de refatorações
+
+| Versão | O que mudou |
+|--------|-------------|
+| v1.1 | `Beneficiario` (antigo, quem recebia) renomeado para `Beneficiado`; novo modelo `Beneficiario` criado para quem doa; `ItemEstoque.doador` (CharField) substituído por `ItemEstoque.beneficiario` (FK); `Distribuicao.beneficiario` renomeado para `Distribuicao.beneficiado`; tela de registrar distribuição reconectada com baixa atômica de estoque e criação inline de beneficiado |

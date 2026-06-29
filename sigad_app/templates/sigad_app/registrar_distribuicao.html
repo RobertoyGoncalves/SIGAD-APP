@@ -1,66 +1,156 @@
 {% extends 'sigad_app/base.html' %}
 {% block title %}Registrar Distribuição | SIGAD{% endblock %}
 {% block content %}
+
+{# Formulário isolado para novo beneficiado — FORA do form principal #}
+<form method="post" action="{% url 'registrar_distribuicao' %}" id="form-novo-beneficiado">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="novo_beneficiado">
+</form>
+
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="text-center page-header">
             <h1 class="section-title">Registrar Distribuição</h1>
-            <p class="section-subtitle">Registre a saída de itens do estoque para um beneficiário.</p>
+            <p class="section-subtitle">Registre a saída de itens do estoque para um beneficiado.</p>
         </div>
 
+        {# Formulário principal de distribuição #}
         <form method="post" action="{% url 'registrar_distribuicao' %}" id="form-distribuicao">
             {% csrf_token %}
             <input type="hidden" name="linhas_json" id="linhas_json" value="[]">
 
+            {# Selecionar beneficiado #}
             <div class="sigad-card mb-3">
                 <div class="card-body">
                     <div class="field-group mb-0">
-                        <label for="beneficiario_id" class="form-label">Beneficiário *</label>
-                        <select name="beneficiario_id" id="beneficiario_id" class="form-select sigad-input" required>
+                        <label for="beneficiado_id" class="form-label">
+                            Beneficiado * <span class="text-secondary fw-normal small">(quem recebe)</span>
+                        </label>
+                        <select name="beneficiado_id" id="beneficiado_id" class="form-select sigad-input" required>
                             <option value="">Selecione…</option>
-                            {% for b in beneficiarios_opts %}
-                            <option value="{{ b.id }}">{{ b.nome }}</option>
+                            {% for b in beneficiados_opts %}
+                            <option value="{{ b.id }}"{% if selected_beneficiado_id == b.id|stringformat:"s" %} selected{% endif %}>{{ b.nome }}</option>
                             {% endfor %}
                         </select>
-                        {% if not beneficiarios_opts %}
-                        <p class="form-text mt-2 mb-0">Cadastre um beneficiário antes de registrar distribuições.</p>
+                        {% if not beneficiados_opts %}
+                        <p class="form-text mt-2 mb-0">Cadastre um beneficiado antes de registrar distribuições.</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
+            {# Novo beneficiado inline — campos associados ao form-novo-beneficiado via atributo form= #}
+            <details class="mb-3"{% if form_novo.errors %} open{% endif %}>
+                <summary class="btn-sigad-ghost summary-as-btn mb-0">
+                    <i class="icon icon-user-plus"></i>Novo beneficiado
+                </summary>
+                <div class="sigad-card mt-2">
+                    <div class="card-body">
+                        {% if form_novo.non_field_errors %}
+                        <div class="sigad-alert sigad-alert-danger mb-3">{{ form_novo.non_field_errors }}</div>
+                        {% endif %}
+                        <div class="row g-3">
+                            <div class="col-md-6 field-group">
+                                {{ form_novo.nome.errors }}
+                                <label for="{{ form_novo.nome.id_for_label }}" class="form-label">{{ form_novo.nome.label }} *</label>
+                                <input type="text" name="nome" id="{{ form_novo.nome.id_for_label }}"
+                                       class="form-control sigad-input{% if form_novo.nome.errors %} is-invalid{% endif %}"
+                                       form="form-novo-beneficiado"
+                                       value="{{ form_novo.nome.value|default:'' }}">
+                            </div>
+                            <div class="col-md-6 field-group">
+                                {{ form_novo.cpf.errors }}
+                                <label for="{{ form_novo.cpf.id_for_label }}" class="form-label">{{ form_novo.cpf.label }}</label>
+                                <input type="text" name="cpf" id="{{ form_novo.cpf.id_for_label }}"
+                                       class="form-control sigad-input{% if form_novo.cpf.errors %} is-invalid{% endif %}"
+                                       form="form-novo-beneficiado"
+                                       value="{{ form_novo.cpf.value|default:'' }}">
+                            </div>
+                            <div class="col-md-6 field-group">
+                                {{ form_novo.telefone.errors }}
+                                <label for="{{ form_novo.telefone.id_for_label }}" class="form-label">{{ form_novo.telefone.label }}</label>
+                                <input type="text" name="telefone" id="{{ form_novo.telefone.id_for_label }}"
+                                       class="form-control sigad-input"
+                                       form="form-novo-beneficiado"
+                                       value="{{ form_novo.telefone.value|default:'' }}">
+                            </div>
+                            <div class="col-md-6 field-group">
+                                {{ form_novo.email.errors }}
+                                <label for="{{ form_novo.email.id_for_label }}" class="form-label">{{ form_novo.email.label }}</label>
+                                <input type="email" name="email" id="{{ form_novo.email.id_for_label }}"
+                                       class="form-control sigad-input"
+                                       form="form-novo-beneficiado"
+                                       value="{{ form_novo.email.value|default:'' }}">
+                            </div>
+                            <div class="col-12 field-group">
+                                {{ form_novo.endereco.errors }}
+                                <label for="{{ form_novo.endereco.id_for_label }}" class="form-label">{{ form_novo.endereco.label }}</label>
+                                <input type="text" name="endereco" id="{{ form_novo.endereco.id_for_label }}"
+                                       class="form-control sigad-input"
+                                       form="form-novo-beneficiado"
+                                       value="{{ form_novo.endereco.value|default:'' }}">
+                            </div>
+                            <div class="col-12 d-flex justify-content-end">
+                                <button type="submit" form="form-novo-beneficiado" class="btn-sigad">
+                                    Salvar beneficiado
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            {# Itens da distribuição #}
             <div class="sigad-card mb-3">
                 <div class="card-body">
-                    <h3 class="fs-6 fw-semibold mb-3 text-primary-sigad">Itens da distribuição</h3>
+                    <h3 class="fs-6 fw-semibold mb-1 text-primary-sigad">Itens da distribuição</h3>
+                    <p class="form-text mb-3">
+                        A quantidade se refere à <strong>unidade de medida do item</strong>
+                        (ex.: se o item é "Arroz — 10 kg", informar 3 desconta 3 kg do estoque).
+                    </p>
                     <div class="row g-3 align-items-end mb-3">
                         <div class="col-md-6">
-                            <label for="dist_item_id" class="form-label visually-hidden">Item</label>
+                            <label for="dist_item_id" class="form-label">Item</label>
                             <select id="dist_item_id" class="form-select sigad-input" {% if not itens_opts %}disabled{% endif %}>
                                 <option value="">Selecione o item…</option>
                                 {% for it in itens_opts %}
-                                <option value="{{ it.id }}">{{ it.label }}</option>
+                                <option value="{{ it.id }}" data-unit="{{ it.unidade }}">{{ it.label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label for="dist_qtd" class="form-label visually-hidden">Quantidade</label>
-                            <input type="number" id="dist_qtd" min="1" value="1" class="form-control sigad-input" aria-label="Quantidade" {% if not itens_opts %}disabled{% endif %}>
+                            <label for="dist_qtd" class="form-label">
+                                Quantidade <span id="unit_hint" class="text-secondary fw-normal"></span>
+                            </label>
+                            <input type="number" id="dist_qtd" min="1" value="1" class="form-control sigad-input"
+                                   aria-label="Quantidade" {% if not itens_opts %}disabled{% endif %}>
                         </div>
-                        <div class="col-md-3">
-                            <button class="btn-sigad w-100" type="button" id="dist_add_btn" {% if not itens_opts %}disabled{% endif %}><i class="icon icon-plus"></i>Adicionar</button>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn-sigad w-100" type="button" id="dist_add_btn"
+                                    {% if not itens_opts %}disabled{% endif %}>
+                                <i class="icon icon-plus"></i>Adicionar
+                            </button>
                         </div>
                     </div>
-                    <div id="dist_list_wrap" class="dist-list-wrap {% if not itens_opts %}is-empty{% endif %}">
+                    {% if not itens_opts %}
+                    <p class="form-text text-secondary">Sem itens disponíveis no estoque no momento.</p>
+                    {% endif %}
+                    <div id="dist_list_wrap">
                         <div class="table-responsive">
                             <table class="sigad-table" id="dist_lines_table" hidden>
                                 <thead>
-                                    <tr><th>Item</th><th>Qtd</th><th></th></tr>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Quantidade</th>
+                                        <th></th>
+                                    </tr>
                                 </thead>
                                 <tbody id="dist_lines_body"></tbody>
                             </table>
                         </div>
-                        <div class="empty-box rounded-sigad-md p-4 text-center text-secondary" id="dist_empty">
-                            <strong class="d-block text-dark">Nenhum item adicionado</strong>
+                        <div class="empty-box rounded p-4 text-center text-secondary border rounded" id="dist_empty">
+                            <strong class="d-block text-dark mb-1">Nenhum item adicionado</strong>
                             <p class="mb-0 small">Selecione o item, a quantidade e clique em Adicionar.</p>
                         </div>
                     </div>
@@ -68,7 +158,10 @@
             </div>
 
             <div class="d-grid">
-                <button class="btn-sigad btn-lg" type="submit" {% if not beneficiarios_opts or not itens_opts %}disabled{% endif %}>Confirmar distribuição</button>
+                <button class="btn-sigad btn-lg" type="submit" id="btn-confirmar"
+                        {% if not beneficiados_opts or not itens_opts %}disabled{% endif %}>
+                    Confirmar distribuição
+                </button>
             </div>
         </form>
     </div>
@@ -83,10 +176,11 @@
     var tbody = document.getElementById('dist_lines_body');
     var table = document.getElementById('dist_lines_table');
     var emptyBox = document.getElementById('dist_empty');
-    var wrap = document.getElementById('dist_list_wrap');
     var selItem = document.getElementById('dist_item_id');
     var inpQtd = document.getElementById('dist_qtd');
-    var opts = {{ itens_opts_json }};
+    var unitHint = document.getElementById('unit_hint');
+    var btnConfirmar = document.getElementById('btn-confirmar');
+    var opts = {{ itens_opts_json|safe }};
 
     function labelForId(id) {
         for (var i = 0; i < opts.length; i++) {
@@ -99,52 +193,100 @@
         hidden.value = JSON.stringify(lines);
     }
 
-    function render() {
-        tbody.replaceChildren();
+    function updateConfirmBtn() {
+        var hasLines = lines.length > 0;
+        var hasBenef = document.getElementById('beneficiado_id').value !== '';
+        if (btnConfirmar) btnConfirmar.disabled = !(hasLines && hasBenef);
+    }
+
+    function renderLines() {
+        tbody.innerHTML = '';
         lines.forEach(function (row, idx) {
             var tr = document.createElement('tr');
+
             var td1 = document.createElement('td');
             td1.textContent = labelForId(row.item_id);
+
             var td2 = document.createElement('td');
-            td2.textContent = String(row.quantidade);
+            td2.textContent = row.quantidade + (row.unidade ? ' ' + row.unidade : '');
+
             var td3 = document.createElement('td');
+            td3.style.textAlign = 'right';
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'btn-sigad-ghost btn-sigad-sm';
             btn.textContent = 'Remover';
-            btn.addEventListener('click', function () {
-                lines.splice(idx, 1);
-                render();
-            });
+            btn.addEventListener('click', (function (i) {
+                return function () {
+                    lines.splice(i, 1);
+                    renderLines();
+                };
+            })(idx));
             td3.appendChild(btn);
+
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
             tbody.appendChild(tr);
         });
+
         var has = lines.length > 0;
         table.hidden = !has;
-        emptyBox.style.display = has ? 'none' : 'flex';
-        if (wrap) wrap.classList.toggle('is-empty', !has);
+        emptyBox.style.display = has ? 'none' : 'block';
         syncHidden();
+        updateConfirmBtn();
+    }
+
+    // Mostrar unidade ao selecionar item
+    if (selItem) {
+        selItem.addEventListener('change', function () {
+            var opt = selItem.options[selItem.selectedIndex];
+            var unit = opt ? opt.getAttribute('data-unit') : '';
+            unitHint.textContent = unit ? '(' + unit + ')' : '';
+        });
     }
 
     document.getElementById('dist_add_btn').addEventListener('click', function () {
         var id = selItem.value;
         var q = parseInt(inpQtd.value, 10) || 0;
-        if (!id) return;
-        if (q < 1) return;
-        lines.push({ item_id: parseInt(id, 10), quantidade: q });
+        if (!id) {
+            selItem.focus();
+            return;
+        }
+        if (q < 1) {
+            inpQtd.focus();
+            return;
+        }
+        var opt = selItem.options[selItem.selectedIndex];
+        var unit = opt ? opt.getAttribute('data-unit') : '';
+
+        // Impede duplicidade: atualiza quantidade se mesmo item já adicionado
+        var existing = null;
+        for (var i = 0; i < lines.length; i++) {
+            if (String(lines[i].item_id) === String(id)) { existing = i; break; }
+        }
+        if (existing !== null) {
+            lines[existing].quantidade += q;
+        } else {
+            lines.push({ item_id: parseInt(id, 10), quantidade: q, unidade: unit });
+        }
+
         selItem.value = '';
         inpQtd.value = '1';
-        render();
+        unitHint.textContent = '';
+        renderLines();
     });
+
+    document.getElementById('beneficiado_id').addEventListener('change', updateConfirmBtn);
 
     document.getElementById('form-distribuicao').addEventListener('submit', function () {
         syncHidden();
     });
 
-    render();
+    // Estado inicial
+    emptyBox.style.display = 'block';
+    table.hidden = true;
+    updateConfirmBtn();
 })();
 </script>
 {% endblock %}

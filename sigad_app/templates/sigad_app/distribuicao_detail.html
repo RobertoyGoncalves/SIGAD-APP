@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 page-header mb-4">
     <div>
         <h1 class="section-title">Distribuição #{{ distribuicao.pk }}</h1>
-        <p class="section-subtitle">{{ distribuicao.beneficiario.nome }}</p>
+        <p class="section-subtitle">{{ distribuicao.beneficiado.nome }}</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
         <a class="btn-sigad-outline" href="{% url 'distribuicao_update' distribuicao.pk %}">Editar</a>
@@ -16,8 +16,10 @@
 <div class="sigad-card mb-4">
     <div class="card-body p-4">
         <dl class="row mb-0">
-            <dt class="col-sm-3">Beneficiário</dt>
-            <dd class="col-sm-9">{{ distribuicao.beneficiario.nome }}</dd>
+            <dt class="col-sm-3">Beneficiado</dt>
+            <dd class="col-sm-9">
+                <a href="{% url 'beneficiado_detail' distribuicao.beneficiado.pk %}">{{ distribuicao.beneficiado.nome }}</a>
+            </dd>
             <dt class="col-sm-3">Registrado em</dt>
             <dd class="col-sm-9">{{ distribuicao.registrado_em|date:"d/m/Y H:i" }}</dd>
         </dl>
@@ -26,7 +28,7 @@
 
 <div class="sigad-card">
     <div class="card-header-light px-4 py-3">
-        <h5 class="mb-0 fw-semibold">Linhas da distribuição</h5>
+        <h5 class="mb-0 fw-semibold">Itens distribuídos</h5>
     </div>
     <div class="table-responsive">
         <table class="table sigad-table mb-0">
@@ -34,6 +36,7 @@
                 <tr>
                     <th>Item</th>
                     <th>Quantidade</th>
+                    <th>Unidade</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,10 +44,11 @@
                 <tr>
                     <td>{{ linha.item_estoque.nome }}</td>
                     <td>{{ linha.quantidade }}</td>
+                    <td>{{ linha.item_estoque.unidade }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="2" class="text-center text-muted py-4">Nenhuma linha vinculada.</td>
+                    <td colspan="3" class="text-center text-muted py-4">Nenhuma linha vinculada.</td>
                 </tr>
                 {% endfor %}
             </tbody>

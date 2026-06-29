@@ -6,7 +6,6 @@
         <h1 class="section-title">Linhas de Distribuição</h1>
         <p class="section-subtitle">Itens vinculados às distribuições</p>
     </div>
-    <a class="btn-sigad" href="{% url 'linha_distribuicao_create' %}"><i class="icon icon-list-plus"></i>Cadastrar</a>
 </div>
 
 <div class="sigad-card">
@@ -15,6 +14,7 @@
             <thead>
                 <tr>
                     <th>Distribuição</th>
+                    <th>Beneficiado</th>
                     <th>Item</th>
                     <th>Quantidade</th>
                     <th class="text-end">Ações</th>
@@ -23,18 +23,17 @@
             <tbody>
                 {% for linha in linhas_distribuicao %}
                 <tr>
-                    <td>#{{ linha.distribuicao.pk }} — {{ linha.distribuicao.beneficiario.nome }}</td>
+                    <td><a href="{% url 'distribuicao_detail' linha.distribuicao.pk %}">#{{ linha.distribuicao.pk }}</a></td>
+                    <td>{{ linha.distribuicao.beneficiado.nome }}</td>
                     <td>{{ linha.item_estoque.nome }}</td>
                     <td>{{ linha.quantidade }}</td>
                     <td class="text-end text-nowrap">
                         <a class="btn-sigad-ghost btn-sm" href="{% url 'linha_distribuicao_detail' linha.pk %}">Ver</a>
-                        <a class="btn-sigad-outline btn-sm" href="{% url 'linha_distribuicao_update' linha.pk %}">Editar</a>
-                        <a class="btn-sigad-ghost btn-sm text-danger" href="{% url 'linha_distribuicao_delete' linha.pk %}">Excluir</a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" class="text-center text-muted py-4">Nenhuma linha cadastrada.</td>
+                    <td colspan="5" class="text-center text-muted py-4">Nenhuma linha cadastrada.</td>
                 </tr>
                 {% endfor %}
             </tbody>

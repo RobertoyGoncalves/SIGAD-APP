@@ -1,0 +1,68 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}{{ beneficiado.nome }} | SIGAD{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 page-header mb-4">
+    <div>
+        <h1 class="section-title">{{ beneficiado.nome }}</h1>
+        <p class="section-subtitle">Detalhes do beneficiado</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn-sigad-outline" href="{% url 'beneficiado_update' beneficiado.pk %}">Editar</a>
+        <a class="btn-sigad-ghost text-danger" href="{% url 'beneficiado_delete' beneficiado.pk %}">Excluir</a>
+        <a class="btn-sigad-ghost" href="{% url 'beneficiado_list' %}">Voltar</a>
+    </div>
+</div>
+
+<div class="sigad-card mb-4">
+    <div class="card-body p-4">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">CPF</dt>
+            <dd class="col-sm-9">{{ beneficiado.cpf }}</dd>
+            <dt class="col-sm-3">Telefone</dt>
+            <dd class="col-sm-9">{{ beneficiado.telefone }}</dd>
+            <dt class="col-sm-3">E-mail</dt>
+            <dd class="col-sm-9">{{ beneficiado.email }}</dd>
+            <dt class="col-sm-3">Endereço</dt>
+            <dd class="col-sm-9">{{ beneficiado.endereco }}</dd>
+            <dt class="col-sm-3">Última distribuição</dt>
+            <dd class="col-sm-9">{{ beneficiado.ultima_distribuicao|date:"d/m/Y"|default:"—" }}</dd>
+            <dt class="col-sm-3">Cadastrado em</dt>
+            <dd class="col-sm-9">{{ beneficiado.criado_em|date:"d/m/Y H:i" }}</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="sigad-card">
+    <div class="card-header-light px-4 py-3">
+        <h5 class="mb-0 fw-semibold">Distribuições recebidas</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table sigad-table mb-0">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Distribuição</th>
+                    <th>Itens</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dist in beneficiado.distribuicoes.all %}
+                <tr>
+                    <td>{{ dist.registrado_em|date:"d/m/Y H:i" }}</td>
+                    <td><a href="{% url 'distribuicao_detail' dist.pk %}">#{{ dist.pk }}</a></td>
+                    <td>
+                        {% for linha in dist.linhas.all %}
+                        {{ linha.quantidade }}x {{ linha.item_estoque.nome }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center text-muted py-4">Nenhuma distribuição registrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

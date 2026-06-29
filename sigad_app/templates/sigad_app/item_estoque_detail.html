@@ -22,8 +22,12 @@
             <dd class="col-sm-9">{{ item_estoque.quantidade }} {{ item_estoque.unidade }}</dd>
             <dt class="col-sm-3">Validade</dt>
             <dd class="col-sm-9">{{ item_estoque.validade|date:"d/m/Y"|default:"—" }}</dd>
-            <dt class="col-sm-3">Doador</dt>
-            <dd class="col-sm-9">{{ item_estoque.doador|default:"—" }}</dd>
+            <dt class="col-sm-3">Beneficiário</dt>
+            <dd class="col-sm-9">
+                {% if item_estoque.beneficiario %}
+                <a href="{% url 'beneficiario_list' %}">{{ item_estoque.beneficiario.nome }}</a>
+                {% else %}—{% endif %}
+            </dd>
             <dt class="col-sm-3">Observações</dt>
             <dd class="col-sm-9">{{ item_estoque.observacoes|default:"—" }}</dd>
             <dt class="col-sm-3">Cadastrado em</dt>

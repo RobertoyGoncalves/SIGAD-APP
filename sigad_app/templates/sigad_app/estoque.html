@@ -12,7 +12,8 @@
                     <label class="form-label visually-hidden" for="estoque-busca">Buscar</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="icon icon-search"></i></span>
-                        <input type="search" class="form-control sigad-input" id="estoque-busca" name="q" value="{{ filtro_q }}" placeholder="Buscar por item ou doador…">
+                        <input type="search" class="form-control sigad-input" id="estoque-busca" name="q"
+                               value="{{ filtro_q }}" placeholder="Buscar por item ou beneficiário…">
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -44,7 +45,7 @@
                         <th>Quantidade</th>
                         <th>Unidade</th>
                         <th>Validade</th>
-                        <th>Doador</th>
+                        <th>Beneficiário</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -58,8 +59,8 @@
                         </td>
                         <td>{{ item.quantidade }}</td>
                         <td>{{ item.unidade }}</td>
-                        <td>{{ item.validade }}</td>
-                        <td>{{ item.doador }}</td>
+                        <td>{{ item.validade|date:"d/m/Y"|default:"—" }}</td>
+                        <td>{{ item.beneficiario.nome|default:"—" }}</td>
                     </tr>
                     {% empty %}
                     <tr>

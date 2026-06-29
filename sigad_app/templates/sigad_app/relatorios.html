@@ -5,22 +5,29 @@
     <div>
         <h1 class="section-title">Relatórios</h1>
         <p class="section-subtitle">
-            {% if periodo == 'categoria' %}
-            Comparativo por categoria no mês corrente, além das visões por tempo.
-            {% else %}
-            Distribuições por período — alterne entre semana, mês ou categorias.
-            {% endif %}
+            {% if periodo == 'beneficiario' %}Doações por beneficiário — quem doou itens ao estoque
+            {% elif periodo == 'beneficiado' %}Distribuições por beneficiado — quem recebeu itens
+            {% elif periodo == 'categoria' %}Comparativo por categoria de item no mês corrente
+            {% else %}Distribuições por período — alterne entre as visões abaixo{% endif %}
         </p>
     </div>
-    <a class="btn-sigad" href="?periodo={{ periodo }}&amp;export=xlsx"><i class="icon icon-download"></i>Exportar Excel</a>
+    <a class="btn-sigad" href="?periodo={{ periodo }}&amp;export=xlsx">
+        <i class="icon icon-download"></i>Exportar Excel
+    </a>
 </div>
 
-<ul class="nav nav-pills mb-3" aria-label="Tipo de relatório">
+<ul class="nav nav-pills mb-3 flex-wrap gap-1" aria-label="Tipo de relatório">
     <li class="nav-item">
         <a href="?periodo=semanal" class="nav-link {% if periodo == 'semanal' %}active{% endif %}">Semanal</a>
     </li>
     <li class="nav-item">
         <a href="?periodo=mensal" class="nav-link {% if periodo == 'mensal' %}active{% endif %}">Mensal</a>
+    </li>
+    <li class="nav-item">
+        <a href="?periodo=beneficiario" class="nav-link {% if periodo == 'beneficiario' %}active{% endif %}">Por beneficiário</a>
+    </li>
+    <li class="nav-item">
+        <a href="?periodo=beneficiado" class="nav-link {% if periodo == 'beneficiado' %}active{% endif %}">Por beneficiado</a>
     </li>
     <li class="nav-item">
         <a href="?periodo=categoria" class="nav-link {% if periodo == 'categoria' %}active{% endif %}">Por categoria</a>
@@ -37,43 +44,51 @@
 
 <div class="row g-4 mb-4">
     {% for card in resumo_cards %}
-    <div class="col-sm-6 col-xl-3">
+    <div class="col-sm-6 col-xl-4">
         <div class="kpi-card d-flex justify-content-between align-items-start gap-3">
             <div>
                 <p class="kpi-label">{{ card.title }}</p>
                 <p class="kpi-value">{{ card.value }}</p>
                 <p class="kpi-delta">{{ card.delta }}</p>
             </div>
-                <span class="kpi-icon {{ card.tone }} rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                    <i class="icon icon-{{ card.icon }}"></i>
-                </span>
+            <span class="kpi-icon {{ card.tone }} rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                <i class="icon icon-{{ card.icon }}"></i>
+            </span>
         </div>
     </div>
     {% endfor %}
 </div>
 
-<div class="sigad-card{% if periodo == 'categoria' %} report-chart-panel--by-category{% endif %}">
+<div class="sigad-card">
     <div class="card-header-light d-flex flex-wrap justify-content-between align-items-baseline gap-2">
         <h5 class="card-title mb-0 fw-semibold">{{ chart_title }}</h5>
         <span class="text-secondary small">{{ chart_legend_hint }}</span>
     </div>
     <div class="card-body">
-        <div class="chart-wrap{% if periodo == 'categoria' %} chart-wrap--tall{% endif %}">
+        {% if has_data %}
+        <div class="chart-wrap{% if chart_index_axis == 'y' %} chart-wrap--tall{% endif %}">
             <canvas id="relatorioChart" aria-label="Gráfico de relatório"></canvas>
         </div>
+        {% else %}
+        <div class="text-center py-5 text-secondary">
+            <i class="icon icon-bar-chart-2 mb-2" style="font-size:2rem;"></i>
+            <p class="mb-0">Nenhum dado disponível para o período selecionado.</p>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
+{% if has_data %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function () {
     var canvas = document.getElementById('relatorioChart');
     if (!canvas || typeof Chart === 'undefined') return;
 
-    var labels = {{ chart_labels_json }};
-    var values = {{ chart_values_json }};
+    var labels = {{ chart_labels_json|safe }};
+    var values = {{ chart_values_json|safe }};
     var chartType = '{{ chart_type }}';
     var indexAxis = '{{ chart_index_axis }}';
     var valueLabel = '{{ value_label }}';
@@ -97,9 +112,7 @@
         var chart = context.chart;
         var c = chart.ctx;
         var area = chart.chartArea;
-        if (!area) {
-            return isBar ? 'rgba(37, 99, 235, 0.7)' : primarySoft;
-        }
+        if (!area) return isBar ? 'rgba(37, 99, 235, 0.7)' : primarySoft;
         var g;
         if (isBar && isHorizontal) {
             g = c.createLinearGradient(area.left, 0, area.right, 0);
@@ -133,7 +146,7 @@
                 data: values,
                 borderColor: primary,
                 backgroundColor: fillGradient,
-                borderWidth: isLine ? 3 : (isBar ? 0 : 2),
+                borderWidth: isLine ? 3 : 0,
                 fill: isLine,
                 tension: 0.35,
                 maxBarThickness: isHorizontal ? 26 : 48,
@@ -144,9 +157,6 @@
                 pointBorderWidth: isLine ? 2.5 : 2,
                 pointRadius: isBar ? 0 : 5,
                 pointHoverRadius: isBar ? 0 : 8,
-                pointHoverBorderWidth: 2,
-                pointHoverBackgroundColor: '#ffffff',
-                hoverBorderColor: primary,
                 hoverBackgroundColor: isBar ? 'rgba(37, 99, 235, 0.95)' : undefined,
             }]
         },
@@ -155,10 +165,7 @@
             responsive: true,
             maintainAspectRatio: false,
             devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
-            animation: {
-                duration: 720,
-                easing: 'easeOutQuart'
-            },
+            animation: { duration: 720, easing: 'easeOutQuart' },
             interaction: { intersect: false, mode: isHorizontal ? 'nearest' : 'index' },
             plugins: {
                 legend: { display: false },
@@ -170,16 +177,11 @@
                     cornerRadius: 10,
                     displayColors: false,
                     callbacks: {
-                        title: function (items) {
-                            return items.length ? items[0].label : '';
-                        },
+                        title: function (items) { return items.length ? items[0].label : ''; },
                         label: function (ctx) {
-                            var v = isHorizontal ? ctx.parsed.x : (ctx.parsed.y !== undefined && ctx.parsed.y !== null ? ctx.parsed.y : ctx.raw);
+                            var v = isHorizontal ? ctx.parsed.x : (ctx.parsed.y != null ? ctx.parsed.y : ctx.raw);
                             var n = Number(v);
-                            if (valueLabel === 'unidades') {
-                                return n === 1 ? '1 unidade' : n + ' unidades';
-                            }
-                            return n === 1 ? '1 distribuição' : n + ' distribuições';
+                            return n === 1 ? '1 unidade' : n + ' unidades';
                         }
                     }
                 }
@@ -188,65 +190,28 @@
                 x: {
                     beginAtZero: true,
                     suggestedMax: ySuggested,
-                    grid: {
-                        color: gridColor,
-                        lineWidth: 1.25,
-                        drawBorder: false
-                    },
-                    ticks: {
-                        font: { size: 11, weight: '500' },
-                        padding: 8,
-                        precision: 0
-                    },
+                    grid: { color: gridColor, lineWidth: 1.25, drawBorder: false },
+                    ticks: { font: { size: 11, weight: '500' }, padding: 8, precision: 0 },
                     border: { display: false }
                 },
                 y: {
                     offset: true,
-                    grid: {
-                        color: gridColor,
-                        lineWidth: 1.1,
-                        drawBorder: false
-                    },
-                    ticks: {
-                        font: { size: 11, weight: '500' },
-                        padding: 10,
-                        autoSkip: false
-                    },
+                    grid: { color: gridColor, lineWidth: 1.1, drawBorder: false },
+                    ticks: { font: { size: 11, weight: '500' }, padding: 10, autoSkip: false },
                     border: { display: false }
                 }
             } : {
                 x: {
                     offset: isBar,
-                    grid: {
-                        display: isLine,
-                        drawTicks: isLine,
-                        color: gridColor,
-                        lineWidth: 1.25
-                    },
-                    ticks: {
-                        font: { size: 11, weight: '500' },
-                        maxRotation: isBar ? 35 : 0,
-                        minRotation: 0,
-                        autoSkip: !isLine,
-                        maxTicksLimit: isLine ? 14 : undefined,
-                        padding: 8
-                    },
+                    grid: { display: isLine, color: gridColor, lineWidth: 1.25 },
+                    ticks: { font: { size: 11, weight: '500' }, maxRotation: 35, minRotation: 0, padding: 8 },
                     border: { display: false }
                 },
                 y: {
                     beginAtZero: true,
                     suggestedMax: ySuggested,
-                    grid: {
-                        color: gridColor,
-                        lineWidth: 1.35,
-                        drawBorder: false,
-                        tickLength: 0
-                    },
-                    ticks: {
-                        font: { size: 11, weight: '500' },
-                        padding: 10,
-                        precision: 0
-                    },
+                    grid: { color: gridColor, lineWidth: 1.35, drawBorder: false, tickLength: 0 },
+                    ticks: { font: { size: 11, weight: '500' }, padding: 10, precision: 0 },
                     border: { display: false }
                 }
             }
@@ -254,4 +219,5 @@
     });
 })();
 </script>
+{% endif %}
 {% endblock %}

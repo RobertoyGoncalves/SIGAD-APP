@@ -1,0 +1,67 @@
+{% extends 'sigad_app/base.html' %}
+{% block title %}Beneficiados | SIGAD{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 page-header mb-4">
+    <div>
+        <h1 class="section-title">Beneficiados</h1>
+        <p class="section-subtitle">Gerencie quem recebe as distribuições</p>
+    </div>
+    <a class="btn-sigad" href="{% url 'beneficiado_create' %}"><i class="icon icon-user-plus"></i>Cadastrar beneficiado</a>
+</div>
+
+<form class="sigad-card mb-4" method="get" action="{% url 'beneficiado_list' %}">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-9">
+                <label class="form-label visually-hidden" for="benef-busca">Buscar</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="icon icon-search"></i></span>
+                    <input type="search" class="form-control sigad-input" id="benef-busca" name="q"
+                           value="{{ filtro_q }}" placeholder="Buscar por nome, e-mail ou telefone…">
+                </div>
+            </div>
+            <div class="col-md-3 d-flex flex-wrap gap-2">
+                <button type="submit" class="btn-sigad-ghost"><i class="icon icon-search"></i>Buscar</button>
+                {% if filtro_q %}<a class="btn-sigad-ghost" href="{% url 'beneficiado_list' %}">Limpar</a>{% endif %}
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="sigad-card">
+    <div class="table-responsive">
+        <table class="table sigad-table mb-0">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Telefone</th>
+                    <th>E-mail</th>
+                    <th>Última distribuição</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for beneficiado in beneficiados %}
+                <tr>
+                    <td>{{ beneficiado.nome }}</td>
+                    <td>{{ beneficiado.cpf }}</td>
+                    <td>{{ beneficiado.telefone }}</td>
+                    <td>{{ beneficiado.email }}</td>
+                    <td>{{ beneficiado.ultima_distribuicao|date:"d/m/Y"|default:"—" }}</td>
+                    <td class="text-end text-nowrap">
+                        <a class="btn-sigad-ghost btn-sm" href="{% url 'beneficiado_detail' beneficiado.pk %}">Ver</a>
+                        <a class="btn-sigad-outline btn-sm" href="{% url 'beneficiado_update' beneficiado.pk %}">Editar</a>
+                        <a class="btn-sigad-ghost btn-sm text-danger" href="{% url 'beneficiado_delete' beneficiado.pk %}">Excluir</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">Nenhum beneficiado cadastrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

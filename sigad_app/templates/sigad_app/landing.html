@@ -115,28 +115,28 @@
                 <div class="feature-card">
                     <div class="feature-icon"><i class="bi bi-box-seam-fill"></i></div>
                     <h5>Registro de itens</h5>
-                    <p>Cadastre entradas com categoria, quantidade, validade, doador e observações.</p>
+                    <p>Cadastre entradas com categoria, quantidade, validade, beneficiário e observações.</p>
                 </div>
             </div>
             <div class="col fade-up delay-1">
                 <div class="feature-card">
                     <div class="feature-icon"><i class="bi bi-search"></i></div>
                     <h5>Estoque com filtros</h5>
-                    <p>Busque itens por nome ou doador e filtre por categoria em tempo real.</p>
+                    <p>Busque itens por nome ou beneficiário e filtre por categoria em tempo real.</p>
                 </div>
             </div>
             <div class="col fade-up delay-2">
                 <div class="feature-card">
                     <div class="feature-icon"><i class="bi bi-people-fill"></i></div>
                     <h5>Beneficiários</h5>
-                    <p>Cadastre e gerencie beneficiários com busca por nome, e-mail ou telefone.</p>
+                    <p>Cadastre quem doa (beneficiários) e quem recebe (beneficiados), com busca por nome.</p>
                 </div>
             </div>
             <div class="col fade-up delay-3">
                 <div class="feature-card">
                     <div class="feature-icon"><i class="bi bi-arrow-left-right"></i></div>
                     <h5>Distribuições</h5>
-                    <p>Registre saídas de itens do estoque para beneficiários com múltiplas linhas por operação.</p>
+                    <p>Registre saídas de itens do estoque para beneficiados com múltiplas linhas por operação.</p>
                 </div>
             </div>
             <div class="col fade-up delay-4">
@@ -397,8 +397,8 @@
             <div class="col-6 col-md-2">
                 <h6>Acesso</h6>
                 <ul>
-                    <li><a href="{% url 'item_estoque_create' %}">Registrar item</a></li>
-                    <li><a href="{% url 'distribuicao_create' %}">Distribuição</a></li>
+                    <li><a href="{% url 'registrar_item' %}">Registrar item</a></li>
+                    <li><a href="{% url 'registrar_distribuicao' %}">Distribuição</a></li>
                     <li><a href="{% url 'dashboard' %}">Entrar</a></li>
                 </ul>
             </div>

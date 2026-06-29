@@ -44,7 +44,7 @@
 
 
 
-    <nav id="navbar" class="navbar navbar-expand-lg py-3">
+    <nav id="navbar" class="navbar navbar-expand-lg py-2">
 
         <div class="container-fluid">
 
@@ -64,23 +64,53 @@
 
             <div class="collapse navbar-collapse" id="navbarMain">
 
-                <ul class="navbar-nav ms-auto">
-
-                    {% for item in sidebar_items %}
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
 
                     <li class="nav-item">
-
-                        <a href="{% url item.url_name %}" class="nav-link {% if active_page == item.url_name %}active{% endif %}">
-
-                            <i class="icon icon-{{ item.icon }}"></i>
-
-                            <span>{{ item.label }}</span>
-
+                        <a href="{% url 'dashboard' %}" class="nav-link nav-link-sm {% if active_page == 'dashboard' %}active{% endif %}">
+                            <i class="icon icon-layout-dashboard"></i><span class="d-none d-xl-inline ms-1">Dashboard</span>
                         </a>
-
                     </li>
 
-                    {% endfor %}
+                    <li class="nav-item">
+                        <a href="{% url 'estoque' %}" class="nav-link nav-link-sm {% if active_page == 'estoque' %}active{% endif %}">
+                            <i class="icon icon-boxes"></i><span class="ms-1">Estoque</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{% url 'registrar_item' %}" class="nav-link nav-link-sm {% if active_page == 'registrar_item' %}active{% endif %}">
+                            <i class="icon icon-package-plus"></i><span class="ms-1">Registrar item</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{% url 'registrar_distribuicao' %}" class="nav-link nav-link-sm {% if active_page == 'registrar_distribuicao' %}active{% endif %}">
+                            <i class="icon icon-arrow-right-left"></i><span class="ms-1">Distribuição</span>
+                        </a>
+                    </li>
+
+                    {# Dropdown: Pessoas #}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-link-sm dropdown-toggle {% if active_page == 'beneficiario_list' or active_page == 'beneficiado_list' %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="icon icon-users"></i><span class="ms-1">Pessoas</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end sigad-dropdown">
+                            <li><a class="dropdown-item {% if active_page == 'beneficiario_list' %}active{% endif %}" href="{% url 'beneficiario_list' %}"><i class="icon icon-users me-2"></i>Beneficiários</a></li>
+                            <li><a class="dropdown-item {% if active_page == 'beneficiado_list' %}active{% endif %}" href="{% url 'beneficiado_list' %}"><i class="icon icon-heart-handshake me-2"></i>Beneficiados</a></li>
+                        </ul>
+                    </li>
+
+                    {# Dropdown: Histórico #}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-link-sm dropdown-toggle {% if active_page == 'distribuicao_list' or active_page == 'relatorios' %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="icon icon-bar-chart-2"></i><span class="ms-1">Histórico</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end sigad-dropdown">
+                            <li><a class="dropdown-item {% if active_page == 'distribuicao_list' %}active{% endif %}" href="{% url 'distribuicao_list' %}"><i class="icon icon-list me-2"></i>Distribuições</a></li>
+                            <li><a class="dropdown-item {% if active_page == 'relatorios' %}active{% endif %}" href="{% url 'relatorios' %}"><i class="icon icon-bar-chart-2 me-2"></i>Relatórios</a></li>
+                        </ul>
+                    </li>
 
                 </ul>
 
