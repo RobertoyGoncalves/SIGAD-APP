@@ -7,8 +7,9 @@ from sigad_app.views import (
     BeneficiadoDetail,
     BeneficiadoList,
     BeneficiadoUpdate,
-    BeneficiarioDelete,
-    BeneficiarioUpdate,
+    DoadorDelete,
+    DoadorUpdate,
+    CadastroUsuarioView,
     Dashboard,
     DistribuicaoDelete,
     DistribuicaoDetail,
@@ -21,7 +22,14 @@ from sigad_app.views import (
     Landing,
     LinhaDistribuicaoDetail,
     LinhaDistribuicaoList,
-    beneficiario_list,
+    SigadLoginView,
+    SigadLogoutView,
+    SigadPasswordChangeDoneView,
+    SigadPasswordChangeView,
+    UsuarioListView,
+    alternar_admin,
+    alternar_ativo,
+    doador_list,
     estoque,
     registrar_distribuicao,
     registrar_item,
@@ -32,12 +40,17 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('', Landing.as_view(), name='landing'),
+    path('login/', SigadLoginView.as_view(), name='login'),
+    path('cadastro/', CadastroUsuarioView.as_view(), name='cadastro_usuario'),
+    path('logout/', SigadLogoutView.as_view(), name='logout'),
+    path('senha/alterar/', SigadPasswordChangeView.as_view(), name='password_change'),
+    path('senha/alterada/', SigadPasswordChangeDoneView.as_view(), name='password_change_done'),
     path('dashboard/', Dashboard.as_view(), name='dashboard'),
 
-    # Beneficiário (quem DOA)
-    path('beneficiarios/', beneficiario_list, name='beneficiario_list'),
-    path('editar/beneficiario/<int:pk>/', BeneficiarioUpdate.as_view(), name='beneficiario_update'),
-    path('excluir/beneficiario/<int:pk>/', BeneficiarioDelete.as_view(), name='beneficiario_delete'),
+    # Doador (quem DOA)
+    path('doadores/', doador_list, name='doador_list'),
+    path('editar/doador/<int:pk>/', DoadorUpdate.as_view(), name='doador_update'),
+    path('excluir/doador/<int:pk>/', DoadorDelete.as_view(), name='doador_delete'),
 
     # Beneficiado (quem RECEBE)
     path('beneficiados/', BeneficiadoList.as_view(), name='beneficiado_list'),
@@ -67,4 +80,9 @@ urlpatterns = [
 
     # Relatórios
     path('relatorios/', relatorios, name='relatorios'),
+
+    # Usuários (superuser)
+    path('usuarios/', UsuarioListView.as_view(), name='usuario_list'),
+    path('usuarios/<int:pk>/alternar-admin/', alternar_admin, name='alternar_admin'),
+    path('usuarios/<int:pk>/alternar-ativo/', alternar_ativo, name='alternar_ativo'),
 ]

@@ -5,7 +5,7 @@
     <div>
         <h1 class="section-title">Relatórios</h1>
         <p class="section-subtitle">
-            {% if periodo == 'beneficiario' %}Doações por beneficiário — quem doou itens ao estoque
+            {% if periodo == 'doador' %}Doações por doador — quem doou itens ao estoque
             {% elif periodo == 'beneficiado' %}Distribuições por beneficiado — quem recebeu itens
             {% elif periodo == 'categoria' %}Comparativo por categoria de item no mês corrente
             {% else %}Distribuições por período — alterne entre as visões abaixo{% endif %}
@@ -24,7 +24,7 @@
         <a href="?periodo=mensal" class="nav-link {% if periodo == 'mensal' %}active{% endif %}">Mensal</a>
     </li>
     <li class="nav-item">
-        <a href="?periodo=beneficiario" class="nav-link {% if periodo == 'beneficiario' %}active{% endif %}">Por beneficiário</a>
+        <a href="?periodo=doador" class="nav-link {% if periodo == 'doador' %}active{% endif %}">Por doador</a>
     </li>
     <li class="nav-item">
         <a href="?periodo=beneficiado" class="nav-link {% if periodo == 'beneficiado' %}active{% endif %}">Por beneficiado</a>

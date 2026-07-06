@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -10,6 +11,13 @@ class Beneficiado(models.Model):
     email = models.EmailField()
     endereco = models.CharField(max_length=255)
     ultima_distribuicao = models.DateField(null=True, blank=True)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='beneficiados',
+        null=True,
+        blank=True,
+    )
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -21,7 +29,7 @@ class Beneficiado(models.Model):
         return self.nome
 
 
-class Beneficiario(models.Model):
+class Doador(models.Model):
     """Quem DOA itens ao estoque."""
 
     nome = models.CharField(max_length=120)
@@ -30,12 +38,19 @@ class Beneficiario(models.Model):
     email = models.EmailField(blank=True)
     endereco = models.CharField(max_length=255, blank=True)
     observacoes = models.TextField(blank=True)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='doadores',
+        null=True,
+        blank=True,
+    )
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-criado_em']
-        verbose_name = 'Beneficiário'
-        verbose_name_plural = 'Beneficiários'
+        verbose_name = 'Doador'
+        verbose_name_plural = 'Doadores'
 
     def __str__(self):
         return self.nome
@@ -60,15 +75,22 @@ class ItemEstoque(models.Model):
     )
     unidade = models.CharField(max_length=30)
     validade = models.DateField(null=True, blank=True)
-    beneficiario = models.ForeignKey(
-        Beneficiario,
+    doador = models.ForeignKey(
+        Doador,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='itens_doados',
-        verbose_name='Beneficiário (quem doou)',
+        verbose_name='Doador (quem doou)',
     )
     observacoes = models.TextField(blank=True)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='itens_estoque',
+        null=True,
+        blank=True,
+    )
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -86,6 +108,13 @@ class Distribuicao(models.Model):
         verbose_name='Beneficiado (quem recebeu)',
     )
     registrado_em = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='distribuicoes',
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         ordering = ['-registrado_em']

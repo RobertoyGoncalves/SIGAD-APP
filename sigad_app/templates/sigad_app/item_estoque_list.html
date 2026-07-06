@@ -18,7 +18,7 @@
                     <th>Categoria</th>
                     <th>Quantidade</th>
                     <th>Unidade</th>
-                    <th>Beneficiário</th>
+                    <th>Doador</th>
                     <th>Validade</th>
                     <th class="text-end">Ações</th>
                 </tr>
@@ -30,7 +30,7 @@
                     <td>{{ item.get_categoria_display }}</td>
                     <td>{{ item.quantidade }}</td>
                     <td>{{ item.unidade }}</td>
-                    <td>{{ item.beneficiario.nome|default:"—" }}</td>
+                    <td>{{ item.doador.nome|default:"—" }}</td>
                     <td>{{ item.validade|date:"d/m/Y"|default:"—" }}</td>
                     <td class="text-end text-nowrap">
                         <a class="btn-sigad-ghost btn-sm" href="{% url 'item_estoque_detail' item.pk %}">Ver</a>

@@ -92,11 +92,11 @@
 
                     {# Dropdown: Pessoas #}
                     <li class="nav-item dropdown">
-                        <a class="nav-link nav-link-sm dropdown-toggle {% if active_page == 'beneficiario_list' or active_page == 'beneficiado_list' %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link nav-link-sm dropdown-toggle {% if active_page == 'doador_list' or active_page == 'beneficiado_list' %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="icon icon-users"></i><span class="ms-1">Pessoas</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end sigad-dropdown">
-                            <li><a class="dropdown-item {% if active_page == 'beneficiario_list' %}active{% endif %}" href="{% url 'beneficiario_list' %}"><i class="icon icon-users me-2"></i>Beneficiários</a></li>
+                            <li><a class="dropdown-item {% if active_page == 'doador_list' %}active{% endif %}" href="{% url 'doador_list' %}"><i class="icon icon-users me-2"></i>Doadores</a></li>
                             <li><a class="dropdown-item {% if active_page == 'beneficiado_list' %}active{% endif %}" href="{% url 'beneficiado_list' %}"><i class="icon icon-heart-handshake me-2"></i>Beneficiados</a></li>
                         </ul>
                     </li>
@@ -111,6 +111,41 @@
                             <li><a class="dropdown-item {% if active_page == 'relatorios' %}active{% endif %}" href="{% url 'relatorios' %}"><i class="icon icon-bar-chart-2 me-2"></i>Relatórios</a></li>
                         </ul>
                     </li>
+
+                    {% if request.user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-link-sm dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="icon icon-user"></i><span class="ms-1">{{ request.user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end sigad-dropdown">
+                            {% if request.user.is_superuser %}
+                            <li><a class="dropdown-item" href="{% url 'usuario_list' %}"><i class="icon icon-users me-2"></i>Gerenciar usuários</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{% url 'password_change' %}"><i class="icon icon-key me-2"></i>Alterar senha</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="icon icon-log-out me-2"></i>Sair
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a href="{% url 'login' %}" class="nav-link nav-link-sm">
+                            <i class="icon icon-log-in"></i><span class="ms-1">Entrar</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'cadastro_usuario' %}" class="nav-link nav-link-sm">
+                            <i class="icon icon-user-plus"></i><span class="ms-1">Criar conta</span>
+                        </a>
+                    </li>
+                    {% endif %}
 
                 </ul>
 

@@ -1,13 +1,35 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 
-from sigad_app.models import Beneficiado, Beneficiario, ItemEstoque
+from sigad_app.models import Beneficiado, Doador, ItemEstoque
 
 
-class BeneficiarioForm(forms.ModelForm):
-    """Formulário para Beneficiário — quem DOA itens ao estoque."""
+class CadastroUsuarioForm(UserCreationForm):
+    email = forms.EmailField(required=True, label='E-mail')
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ['username', 'email', 'password1', 'password2']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control sigad-input'
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        if commit:
+            user.save()
+        return user
+
+
+class DoadorForm(forms.ModelForm):
+    """Formulário para Doador — quem DOA itens ao estoque."""
 
     class Meta:
-        model = Beneficiario
+        model = Doador
         fields = ['nome', 'cpf', 'telefone', 'email', 'endereco', 'observacoes']
         labels = {
             'nome': 'Nome completo',
@@ -63,7 +85,7 @@ class ItemEstoqueForm(forms.ModelForm):
             'quantidade',
             'unidade',
             'validade',
-            'beneficiario',
+            'doador',
             'observacoes',
         ]
         labels = {
@@ -72,7 +94,7 @@ class ItemEstoqueForm(forms.ModelForm):
             'quantidade': 'Quantidade',
             'unidade': 'Unidade',
             'validade': 'Data de validade',
-            'beneficiario': 'Beneficiário (quem doou)',
+            'doador': 'Doador (quem doou)',
             'observacoes': 'Observações',
         }
         widgets = {
@@ -81,7 +103,7 @@ class ItemEstoqueForm(forms.ModelForm):
             'quantidade': forms.NumberInput(attrs={'class': 'form-control sigad-input', 'min': 1, 'required': True}),
             'unidade': forms.Select(attrs={'class': 'form-select sigad-input', 'required': True}),
             'validade': forms.DateInput(attrs={'class': 'form-control sigad-input', 'type': 'date'}),
-            'beneficiario': forms.Select(attrs={'class': 'form-select sigad-input'}),
+            'doador': forms.Select(attrs={'class': 'form-select sigad-input'}),
             'observacoes': forms.Textarea(
                 attrs={'class': 'form-control sigad-input', 'rows': 5, 'placeholder': 'Informações adicionais...'}
             ),
@@ -101,10 +123,10 @@ class ItemEstoqueForm(forms.ModelForm):
             attrs={'class': 'form-select sigad-input', 'required': True},
         )
         self.fields['validade'].required = False
-        self.fields['beneficiario'].required = False
+        self.fields['doador'].required = False
         self.fields['observacoes'].required = False
-        self.fields['beneficiario'].queryset = Beneficiario.objects.order_by('nome')
-        self.fields['beneficiario'].empty_label = 'Selecione o beneficiário…'
+        self.fields['doador'].queryset = Doador.objects.order_by('nome')
+        self.fields['doador'].empty_label = 'Selecione o doador…'
 
     def clean_categoria(self):
         v = self.cleaned_data.get('categoria')

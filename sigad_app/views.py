@@ -2,14 +2,17 @@ import json
 from datetime import date, timedelta
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.models import User
+from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeDoneView, PasswordChangeView
 from django.db import transaction
 from django.db.models import Q, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -19,11 +22,11 @@ from django.views.generic import (
     UpdateView,
 )
 
-from sigad_app.forms import BeneficiadoForm, BeneficiarioForm, ItemEstoqueForm
+from sigad_app.forms import BeneficiadoForm, CadastroUsuarioForm, DoadorForm, ItemEstoqueForm
 from sigad_app.models import (
     Beneficiado,
-    Beneficiario,
     Distribuicao,
+    Doador,
     ItemEstoque,
     LinhaDistribuicao,
 )
@@ -36,6 +39,90 @@ class Landing(TemplateView):
     template_name = 'sigad_app/landing.html'
 
 
+# ─── Autenticação ─────────────────────────────────────────────────────────
+
+class SigadLoginView(LoginView):
+    template_name = 'sigad_app/form.html'
+    redirect_authenticated_user = True
+    extra_context = {'titulo': 'Entrar no SIGAD', 'botao': 'Entrar'}
+
+
+class SigadLogoutView(LogoutView):
+    next_page = 'landing'
+
+
+class SigadPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    template_name = 'sigad_app/form.html'
+    success_url = reverse_lazy('password_change_done')
+    extra_context = {'titulo': 'Alterar senha', 'botao': 'Salvar nova senha'}
+
+
+class SigadPasswordChangeDoneView(LoginRequiredMixin, PasswordChangeDoneView):
+    template_name = 'sigad_app/password_change_done.html'
+
+
+class CadastroUsuarioView(CreateView):
+    form_class = CadastroUsuarioForm
+    template_name = 'sigad_app/form.html'
+    success_url = reverse_lazy('login')
+    extra_context = {'titulo': 'Criar conta', 'botao': 'Cadastrar'}
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('dashboard')
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Conta criada com sucesso! Faça login para continuar.')
+        return response
+
+
+# ─── Gerenciamento de usuários (superuser) ───────────────────────────────────
+
+class SuperuserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'Você não tem permissão para acessar essa área.')
+        return redirect('dashboard')
+
+
+class UsuarioListView(SuperuserRequiredMixin, ListView):
+    model = User
+    template_name = 'sigad_app/usuario_list.html'
+    context_object_name = 'usuarios'
+    ordering = ['username']
+
+
+@user_passes_test(lambda u: u.is_superuser)
+@require_POST
+def alternar_admin(request, pk):
+    usuario = get_object_or_404(User, pk=pk)
+    if usuario == request.user:
+        messages.error(request, 'Você não pode alterar suas próprias permissões.')
+        return redirect('usuario_list')
+    usuario.is_staff = not usuario.is_staff
+    usuario.is_superuser = not usuario.is_superuser
+    usuario.save()
+    messages.success(request, f'Permissões de {usuario.username} atualizadas.')
+    return redirect('usuario_list')
+
+
+@user_passes_test(lambda u: u.is_superuser)
+@require_POST
+def alternar_ativo(request, pk):
+    usuario = get_object_or_404(User, pk=pk)
+    if usuario == request.user:
+        messages.error(request, 'Você não pode desativar sua própria conta.')
+        return redirect('usuario_list')
+    usuario.is_active = not usuario.is_active
+    usuario.save()
+    messages.success(request, f'Conta de {usuario.username} {"ativada" if usuario.is_active else "desativada"}.')
+    return redirect('usuario_list')
+
+
 # ─── Dashboard ───────────────────────────────────────────────────────────────
 
 class Dashboard(LoginRequiredMixin, TemplateView):
@@ -43,47 +130,57 @@ class Dashboard(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        user = self.request.user
+        itens_qs = ItemEstoque.objects
+        doadores_qs = Doador.objects
+        beneficiados_qs = Beneficiado.objects
+        distribuicoes_qs = Distribuicao.objects
+        if not user.is_superuser:
+            itens_qs = itens_qs.filter(usuario=user)
+            doadores_qs = doadores_qs.filter(usuario=user)
+            beneficiados_qs = beneficiados_qs.filter(usuario=user)
+            distribuicoes_qs = distribuicoes_qs.filter(usuario=user)
         ctx['cards'] = [
             {
                 'title': 'Itens no Estoque',
-                'value': ItemEstoque.objects.count(),
+                'value': itens_qs.count(),
                 'delta': 'Total de itens cadastrados',
                 'icon': 'box-seam',
                 'tone': 'tone-blue',
             },
             {
-                'title': 'Beneficiários',
-                'value': Beneficiario.objects.count(),
+                'title': 'Doadores',
+                'value': doadores_qs.count(),
                 'delta': 'Quem doa',
                 'icon': 'users',
                 'tone': 'tone-green',
             },
             {
                 'title': 'Beneficiados',
-                'value': Beneficiado.objects.count(),
+                'value': beneficiados_qs.count(),
                 'delta': 'Quem recebe',
                 'icon': 'heart-handshake',
                 'tone': 'tone-purple',
             },
             {
                 'title': 'Distribuições',
-                'value': Distribuicao.objects.count(),
+                'value': distribuicoes_qs.count(),
                 'delta': 'Total registrado',
                 'icon': 'arrow-right-left',
                 'tone': 'tone-orange',
             },
         ]
         atividades = []
-        for d in Distribuicao.objects.select_related('beneficiado').order_by('-registrado_em')[:5]:
+        for d in distribuicoes_qs.select_related('beneficiado').order_by('-registrado_em')[:5]:
             atividades.append({
                 'titulo': f'Distribuição #{d.pk}',
                 'descricao': f'Para {d.beneficiado.nome}',
                 'tempo': d.registrado_em.strftime('%d/%m/%Y %H:%M'),
             })
-        for i in ItemEstoque.objects.select_related('beneficiario').order_by('-criado_em')[:5]:
+        for i in itens_qs.select_related('doador').order_by('-criado_em')[:5]:
             desc = f'{i.quantidade} {i.unidade}'
-            if i.beneficiario:
-                desc += f' — {i.beneficiario.nome}'
+            if i.doador:
+                desc += f' — {i.doador.nome}'
             atividades.append({
                 'titulo': f'Doação recebida: {i.nome}',
                 'descricao': desc,
@@ -94,54 +191,71 @@ class Dashboard(LoginRequiredMixin, TemplateView):
         return ctx
 
 
-# ─── Beneficiário (quem DOA) ─────────────────────────────────────────────────
+# ─── Doador (quem DOA) ───────────────────────────────────────────────────────
 
 @login_required
-def beneficiario_list(request):
+def doador_list(request):
     q = request.GET.get('q', '').strip()
-    qs = Beneficiario.objects.prefetch_related('itens_doados').all()
+    if request.user.is_superuser:
+        qs = Doador.objects.prefetch_related('itens_doados').all()
+    else:
+        qs = Doador.objects.prefetch_related('itens_doados').filter(usuario=request.user)
     if q:
         qs = qs.filter(nome__icontains=q)
 
     if request.method == 'POST':
-        form = BeneficiarioForm(request.POST)
+        form = DoadorForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Beneficiário cadastrado com sucesso.')
-            return redirect('beneficiario_list')
+            obj = form.save(commit=False)
+            obj.usuario = request.user
+            obj.save()
+            messages.success(request, 'Doador cadastrado com sucesso.')
+            return redirect('doador_list')
     else:
-        form = BeneficiarioForm()
+        form = DoadorForm()
 
-    beneficiarios_data = []
-    for ben in qs:
-        itens = list(ben.itens_doados.order_by('-criado_em'))
-        beneficiarios_data.append({
-            'obj': ben,
+    doadores_data = []
+    for doador in qs:
+        itens = list(doador.itens_doados.order_by('-criado_em'))
+        doadores_data.append({
+            'obj': doador,
             'itens': itens,
             'total_doacoes': len(itens),
             'total_unidades': sum(i.quantidade for i in itens),
         })
 
-    return render(request, 'sigad_app/beneficiario_list.html', {
-        'beneficiarios_data': beneficiarios_data,
+    return render(request, 'sigad_app/doador_list.html', {
+        'doadores_data': doadores_data,
         'filtro_q': q,
         'form': form,
     })
 
 
-class BeneficiarioUpdate(LoginRequiredMixin, UpdateView):
-    model = Beneficiario
-    form_class = BeneficiarioForm
+class DoadorUpdate(LoginRequiredMixin, UpdateView):
+    model = Doador
+    form_class = DoadorForm
     template_name = 'sigad_app/form.html'
-    success_url = reverse_lazy('beneficiario_list')
-    extra_context = {'titulo': 'Editar Beneficiário', 'botao': 'Atualizar'}
+    success_url = reverse_lazy('doador_list')
+    extra_context = {'titulo': 'Editar Doador', 'botao': 'Atualizar'}
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(usuario=self.request.user)
 
 
-class BeneficiarioDelete(LoginRequiredMixin, DeleteView):
-    model = Beneficiario
+class DoadorDelete(LoginRequiredMixin, DeleteView):
+    model = Doador
     template_name = 'sigad_app/form.html'
-    success_url = reverse_lazy('beneficiario_list')
-    extra_context = {'titulo': 'Excluir Beneficiário', 'botao': 'Confirmar exclusão'}
+    success_url = reverse_lazy('doador_list')
+    extra_context = {'titulo': 'Excluir Doador', 'botao': 'Confirmar exclusão'}
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(usuario=self.request.user)
 
 
 # ─── Beneficiado (quem RECEBE) ────────────────────────────────────────────────
@@ -154,6 +268,7 @@ class BeneficiadoCreate(LoginRequiredMixin, CreateView):
     extra_context = {'titulo': 'Cadastrar Beneficiado', 'botao': 'Salvar'}
 
     def form_valid(self, form):
+        form.instance.usuario = self.request.user
         messages.success(self.request, 'Beneficiado cadastrado com sucesso.')
         return super().form_valid(form)
 
@@ -165,6 +280,8 @@ class BeneficiadoList(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        if not self.request.user.is_superuser:
+            qs = qs.filter(usuario=self.request.user)
         q = self.request.GET.get('q', '').strip()
         if q:
             qs = qs.filter(
@@ -183,6 +300,12 @@ class BeneficiadoDetail(LoginRequiredMixin, DetailView):
     template_name = 'sigad_app/beneficiado_detail.html'
     context_object_name = 'beneficiado'
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(usuario=self.request.user)
+
 
 class BeneficiadoUpdate(LoginRequiredMixin, UpdateView):
     model = Beneficiado
@@ -191,12 +314,24 @@ class BeneficiadoUpdate(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('beneficiado_list')
     extra_context = {'titulo': 'Editar Beneficiado', 'botao': 'Atualizar'}
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(usuario=self.request.user)
+
 
 class BeneficiadoDelete(LoginRequiredMixin, DeleteView):
     model = Beneficiado
     template_name = 'sigad_app/form.html'
     success_url = reverse_lazy('beneficiado_list')
     extra_context = {'titulo': 'Excluir Beneficiado', 'botao': 'Confirmar exclusão'}
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(usuario=self.request.user)
 
 
 # ─── Estoque ──────────────────────────────────────────────────────────────────
@@ -208,6 +343,7 @@ def registrar_item(request):
         if form.is_valid():
             item = form.save(commit=False)
             item.quantidade_doada = item.quantidade
+            item.usuario = request.user
             item.save()
             messages.success(request, 'Item cadastrado no estoque com sucesso.')
             return redirect('item_estoque_list')
@@ -220,10 +356,13 @@ def registrar_item(request):
 def estoque(request):
     q = request.GET.get('q', '').strip()
     categoria = request.GET.get('categoria', '').strip()
-    qs = ItemEstoque.objects.select_related('beneficiario').all()
+    if request.user.is_superuser:
+        qs = ItemEstoque.objects.select_related('doador').all()
+    else:
+        qs = ItemEstoque.objects.select_related('doador').filter(usuario=request.user)
     if q:
         qs = qs.filter(
-            Q(nome__icontains=q) | Q(beneficiario__nome__icontains=q)
+            Q(nome__icontains=q) | Q(doador__nome__icontains=q)
         ).distinct()
     if categoria:
         qs = qs.filter(categoria=categoria)
@@ -252,7 +391,12 @@ class ItemEstoqueList(LoginRequiredMixin, ListView):
     model = ItemEstoque
     template_name = 'sigad_app/item_estoque_list.html'
     context_object_name = 'itens_estoque'
-    queryset = ItemEstoque.objects.select_related('beneficiario')
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_superuser:
+            qs = qs.filter(usuario=self.request.user)
+        return qs.select_related('doador')
 
 
 class ItemEstoqueUpdate(LoginRequiredMixin, UpdateView):
@@ -260,6 +404,12 @@ class ItemEstoqueUpdate(LoginRequiredMixin, UpdateView):
     form_class = ItemEstoqueForm
     template_name = 'sigad_app/registrar_item.html'
     success_url = reverse_lazy('item_estoque_list')
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(usuario=self.request.user)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -273,19 +423,35 @@ class ItemEstoqueDelete(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('item_estoque_list')
     extra_context = {'titulo': 'Excluir Item de Estoque', 'botao': 'Confirmar exclusão'}
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(usuario=self.request.user)
+
 
 class ItemEstoqueDetail(LoginRequiredMixin, DetailView):
     model = ItemEstoque
     template_name = 'sigad_app/item_estoque_detail.html'
     context_object_name = 'item_estoque'
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(usuario=self.request.user)
+
 
 # ─── Distribuição ─────────────────────────────────────────────────────────────
 
 @login_required
 def registrar_distribuicao(request):
-    beneficiados_opts = Beneficiado.objects.order_by('nome')
-    itens_qs = ItemEstoque.objects.filter(quantidade__gt=0).order_by('nome')
+    if request.user.is_superuser:
+        beneficiados_opts = Beneficiado.objects.order_by('nome')
+        itens_qs = ItemEstoque.objects.filter(quantidade__gt=0).order_by('nome')
+    else:
+        beneficiados_opts = Beneficiado.objects.filter(usuario=request.user).order_by('nome')
+        itens_qs = ItemEstoque.objects.filter(usuario=request.user, quantidade__gt=0).order_by('nome')
     itens_opts = [
         {'id': i.pk, 'label': f'{i.nome} — {i.quantidade} {i.unidade}', 'unidade': i.unidade}
         for i in itens_qs
@@ -299,7 +465,9 @@ def registrar_distribuicao(request):
         if action == 'novo_beneficiado':
             form_novo = BeneficiadoForm(request.POST)
             if form_novo.is_valid():
-                novo = form_novo.save()
+                novo = form_novo.save(commit=False)
+                novo.usuario = request.user
+                novo.save()
                 messages.success(request, f'Beneficiado "{novo.nome}" cadastrado.')
                 return redirect(f'{reverse_lazy("registrar_distribuicao")}?beneficiado_id={novo.pk}')
 
@@ -322,11 +490,18 @@ def registrar_distribuicao(request):
             else:
                 try:
                     with transaction.atomic():
-                        beneficiado = get_object_or_404(Beneficiado, pk=beneficiado_id)
-                        dist = Distribuicao.objects.create(beneficiado=beneficiado)
+                        if request.user.is_superuser:
+                            beneficiado = get_object_or_404(Beneficiado, pk=beneficiado_id)
+                            dist = Distribuicao.objects.create(beneficiado=beneficiado, usuario=request.user)
+                        else:
+                            beneficiado = get_object_or_404(Beneficiado, pk=beneficiado_id, usuario=request.user)
+                            dist = Distribuicao.objects.create(beneficiado=beneficiado, usuario=request.user)
 
                         for linha in linhas:
-                            item = get_object_or_404(ItemEstoque, pk=linha['item_id'])
+                            if request.user.is_superuser:
+                                item = get_object_or_404(ItemEstoque, pk=linha['item_id'])
+                            else:
+                                item = get_object_or_404(ItemEstoque, pk=linha['item_id'], usuario=request.user)
                             qtd = int(linha['quantidade'])
                             if qtd <= 0:
                                 raise ValueError(f'Quantidade inválida para {item.nome}.')
@@ -365,13 +540,24 @@ class DistribuicaoList(LoginRequiredMixin, ListView):
     model = Distribuicao
     template_name = 'sigad_app/distribuicao_list.html'
     context_object_name = 'distribuicoes'
-    queryset = Distribuicao.objects.select_related('beneficiado')
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_superuser:
+            qs = qs.filter(usuario=self.request.user)
+        return qs.select_related('beneficiado')
 
 
 class DistribuicaoDetail(LoginRequiredMixin, DetailView):
     model = Distribuicao
     template_name = 'sigad_app/distribuicao_detail.html'
     context_object_name = 'distribuicao'
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(usuario=self.request.user)
 
 
 class DistribuicaoUpdate(LoginRequiredMixin, UpdateView):
@@ -381,6 +567,12 @@ class DistribuicaoUpdate(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('distribuicao_list')
     extra_context = {'titulo': 'Editar Distribuição', 'botao': 'Atualizar'}
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(usuario=self.request.user)
+
 
 class DistribuicaoDelete(LoginRequiredMixin, DeleteView):
     model = Distribuicao
@@ -388,20 +580,37 @@ class DistribuicaoDelete(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('distribuicao_list')
     extra_context = {'titulo': 'Excluir Distribuição', 'botao': 'Confirmar exclusão'}
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(usuario=self.request.user)
+
 
 class LinhaDistribuicaoList(LoginRequiredMixin, ListView):
     model = LinhaDistribuicao
     template_name = 'sigad_app/linha_distribuicao_list.html'
     context_object_name = 'linhas_distribuicao'
-    queryset = LinhaDistribuicao.objects.select_related(
-        'distribuicao__beneficiado', 'item_estoque'
-    )
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_superuser:
+            qs = qs.filter(distribuicao__usuario=self.request.user)
+        return qs.select_related(
+            'distribuicao__beneficiado', 'item_estoque'
+        )
 
 
 class LinhaDistribuicaoDetail(LoginRequiredMixin, DetailView):
     model = LinhaDistribuicao
     template_name = 'sigad_app/linha_distribuicao_detail.html'
     context_object_name = 'linha_distribuicao'
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(distribuicao__usuario=self.request.user)
 
 
 # ─── Relatórios ───────────────────────────────────────────────────────────────
@@ -431,7 +640,7 @@ def relatorios(request):
     exportar = request.GET.get('export', '') == 'xlsx'
     hoje = timezone.localdate()
 
-    PERIODOS_VALIDOS = ('semanal', 'mensal', 'beneficiario', 'beneficiado', 'categoria')
+    PERIODOS_VALIDOS = ('semanal', 'mensal', 'doador', 'beneficiado', 'categoria')
     if periodo not in PERIODOS_VALIDOS:
         periodo = 'semanal'
 
@@ -450,6 +659,11 @@ def relatorios(request):
     col_qtd = ''
     tipo_label = ''
 
+    user = request.user
+    filtro_dist = {} if user.is_superuser else {'usuario': user}
+    filtro_linha_dist = {} if user.is_superuser else {'distribuicao__usuario': user}
+    filtro_item = {} if user.is_superuser else {'usuario': user}
+
     if periodo == 'semanal':
         inicio, fim = _semana_corrente()
         range_inicio = inicio.strftime('%d/%m/%Y')
@@ -461,7 +675,10 @@ def relatorios(request):
         contagem = {i: 0 for i in range(7)}
         linhas_qs = (
             LinhaDistribuicao.objects
-            .filter(distribuicao__registrado_em__date__range=(inicio, fim))
+            .filter(
+                distribuicao__registrado_em__date__range=(inicio, fim),
+                **filtro_linha_dist,
+            )
             .select_related('distribuicao')
         )
         for linha in linhas_qs:
@@ -471,11 +688,14 @@ def relatorios(request):
         labels = nomes_dias
         values = [contagem[i] for i in range(7)]
 
-        total_dist = Distribuicao.objects.filter(registrado_em__date__range=(inicio, fim)).count()
+        total_dist = Distribuicao.objects.filter(
+            registrado_em__date__range=(inicio, fim),
+            **filtro_dist,
+        ).count()
         total_unid = sum(values)
         benef_atend = (
             Distribuicao.objects
-            .filter(registrado_em__date__range=(inicio, fim))
+            .filter(registrado_em__date__range=(inicio, fim), **filtro_dist)
             .values('beneficiado').distinct().count()
         )
         resumo_cards = [
@@ -507,7 +727,8 @@ def relatorios(request):
             semanas[chave] = 0
             d_fim_sem = min(d + timedelta(days=6), fim)
             linhas_qs = LinhaDistribuicao.objects.filter(
-                distribuicao__registrado_em__date__range=(d, d_fim_sem)
+                distribuicao__registrado_em__date__range=(d, d_fim_sem),
+                **filtro_linha_dist,
             )
             semanas[chave] = sum(l.quantidade for l in linhas_qs)
             d = d_fim_sem + timedelta(days=1)
@@ -516,11 +737,14 @@ def relatorios(request):
         labels = list(semanas.keys())
         values = list(semanas.values())
 
-        total_dist = Distribuicao.objects.filter(registrado_em__date__range=(inicio, fim)).count()
+        total_dist = Distribuicao.objects.filter(
+            registrado_em__date__range=(inicio, fim),
+            **filtro_dist,
+        ).count()
         total_unid = sum(values)
         benef_atend = (
             Distribuicao.objects
-            .filter(registrado_em__date__range=(inicio, fim))
+            .filter(registrado_em__date__range=(inicio, fim), **filtro_dist)
             .values('beneficiado').distinct().count()
         )
         resumo_cards = [
@@ -536,35 +760,39 @@ def relatorios(request):
         col_ref = 'Semana'
         col_qtd = 'Unidades distribuídas'
 
-    elif periodo == 'beneficiario':
+    elif periodo == 'doador':
         inicio, fim = _mes_corrente()
         range_inicio = inicio.strftime('%d/%m/%Y')
         range_fim = fim.strftime('%d/%m/%Y')
-        periodo_titulo = f'Doações por beneficiário — {inicio.strftime("%B/%Y").capitalize()}'
-        tipo_label = 'Por beneficiário (quem doou) — top 10 do mês'
+        periodo_titulo = f'Doações por doador — {inicio.strftime("%B/%Y").capitalize()}'
+        tipo_label = 'Por doador (quem doou) — top 10 do mês'
 
         qs = (
             ItemEstoque.objects
-            .filter(beneficiario__isnull=False, criado_em__date__range=(inicio, fim))
-            .values('beneficiario__nome')
+            .filter(
+                doador__isnull=False,
+                criado_em__date__range=(inicio, fim),
+                **filtro_item,
+            )
+            .values('doador__nome')
             .annotate(total=Sum('quantidade_doada'))
             .order_by('-total')[:10]
         )
-        labels = [r['beneficiario__nome'] for r in qs]
+        labels = [r['doador__nome'] for r in qs]
         values = [r['total'] for r in qs]
 
         total_benef = len(labels)
         total_unid = sum(values)
         resumo_cards = [
-            {'title': 'Beneficiários', 'value': total_benef, 'delta': 'com doação no mês', 'icon': 'users', 'tone': 'tone-green'},
+            {'title': 'Doadores', 'value': total_benef, 'delta': 'com doação no mês', 'icon': 'users', 'tone': 'tone-green'},
             {'title': 'Unidades doadas', 'value': total_unid, 'delta': 'no mês', 'icon': 'boxes', 'tone': 'tone-blue'},
         ]
         chart_type = 'bar'
         chart_index_axis = 'y'
-        chart_title = 'Top beneficiários por unidades doadas (mês corrente)'
+        chart_title = 'Top doadores por unidades doadas (mês corrente)'
         chart_legend_hint = 'Quem doou itens ao estoque'
         value_label = 'unidades'
-        col_ref = 'Beneficiário'
+        col_ref = 'Doador'
         col_qtd = 'Unidades doadas'
 
     elif periodo == 'beneficiado':
@@ -576,7 +804,10 @@ def relatorios(request):
 
         qs = (
             LinhaDistribuicao.objects
-            .filter(distribuicao__registrado_em__date__range=(inicio, fim))
+            .filter(
+                distribuicao__registrado_em__date__range=(inicio, fim),
+                **filtro_linha_dist,
+            )
             .values('distribuicao__beneficiado__nome')
             .annotate(total=Sum('quantidade'))
             .order_by('-total')[:10]
@@ -588,7 +819,7 @@ def relatorios(request):
         total_unid = sum(values)
         total_dist = (
             Distribuicao.objects
-            .filter(registrado_em__date__range=(inicio, fim))
+            .filter(registrado_em__date__range=(inicio, fim), **filtro_dist)
             .count()
         )
         resumo_cards = [
@@ -613,7 +844,10 @@ def relatorios(request):
 
         qs = (
             LinhaDistribuicao.objects
-            .filter(distribuicao__registrado_em__date__range=(inicio, fim))
+            .filter(
+                distribuicao__registrado_em__date__range=(inicio, fim),
+                **filtro_linha_dist,
+            )
             .values('item_estoque__categoria')
             .annotate(total=Sum('quantidade'))
             .order_by('-total')

@@ -391,7 +391,7 @@
                 <h6>Sistema</h6>
                 <ul>
                     <li><a href="{% url 'item_estoque_list' %}">Estoque</a></li>
-                    <li><a href="{% url 'beneficiario_list' %}">Beneficiários</a></li>
+                    <li><a href="{% url 'doador_list' %}">Doadores</a></li>
                 </ul>
             </div>
             <div class="col-6 col-md-2">
@@ -399,7 +399,12 @@
                 <ul>
                     <li><a href="{% url 'registrar_item' %}">Registrar item</a></li>
                     <li><a href="{% url 'registrar_distribuicao' %}">Distribuição</a></li>
-                    <li><a href="{% url 'dashboard' %}">Entrar</a></li>
+                    {% if request.user.is_authenticated %}
+                    <li><a href="{% url 'dashboard' %}">Ir para o Dashboard</a></li>
+                    {% else %}
+                    <li><a href="{% url 'login' %}">Entrar</a></li>
+                    <li><a href="{% url 'cadastro_usuario' %}">Criar conta</a></li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

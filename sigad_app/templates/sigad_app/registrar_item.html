@@ -46,12 +46,12 @@
                             {{ form.validade }}
                         </div>
                         <div class="col-md-6 field-group">
-                            {{ form.beneficiario.errors }}
-                            <label for="{{ form.beneficiario.id_for_label }}" class="form-label">{{ form.beneficiario.label }}</label>
-                            {{ form.beneficiario }}
+                            {{ form.doador.errors }}
+                            <label for="{{ form.doador.id_for_label }}" class="form-label">{{ form.doador.label }}</label>
+                            {{ form.doador }}
                             <div class="form-text">
-                                <a href="{% url 'beneficiario_list' %}" class="text-decoration-none">
-                                    <i class="icon icon-plus-circle me-1"></i>Gerenciar beneficiários
+                                <a href="{% url 'doador_list' %}" class="text-decoration-none">
+                                    <i class="icon icon-plus-circle me-1"></i>Gerenciar doadores
                                 </a>
                             </div>
                         </div>

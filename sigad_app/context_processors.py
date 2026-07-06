@@ -3,14 +3,14 @@ SIDEBAR_ITEMS = [
     {'label': 'Registrar Item', 'url_name': 'registrar_item', 'icon': 'package-plus'},
     {'label': 'Registrar Distribuição', 'url_name': 'registrar_distribuicao', 'icon': 'arrow-right-left'},
     {'label': 'Estoque', 'url_name': 'estoque', 'icon': 'boxes'},
-    {'label': 'Beneficiários', 'url_name': 'beneficiario_list', 'icon': 'users'},
+    {'label': 'Doadores', 'url_name': 'doador_list', 'icon': 'users'},
     {'label': 'Beneficiados', 'url_name': 'beneficiado_list', 'icon': 'heart-handshake'},
     {'label': 'Distribuições', 'url_name': 'distribuicao_list', 'icon': 'list'},
     {'label': 'Relatórios', 'url_name': 'relatorios', 'icon': 'bar-chart-2'},
 ]
 
 _ACTIVE_PAGE_MAP = {
-    'beneficiario': 'beneficiario_list',
+    'doador': 'doador_list',
     'beneficiado': 'beneficiado_list',
     'item_estoque': 'item_estoque_list',
     'distribuicao': 'distribuicao_list',

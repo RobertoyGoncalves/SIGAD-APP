@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from sigad_app.models import Beneficiado, Beneficiario, Distribuicao, ItemEstoque, LinhaDistribuicao
+from sigad_app.models import Beneficiado, Distribuicao, Doador, ItemEstoque, LinhaDistribuicao
 
 
 class LinhaDistribuicaoInline(admin.TabularInline):
@@ -10,25 +10,27 @@ class LinhaDistribuicaoInline(admin.TabularInline):
 
 @admin.register(Distribuicao)
 class DistribuicaoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'beneficiado', 'registrado_em')
-    list_filter = ('registrado_em',)
+    list_display = ('id', 'beneficiado', 'usuario', 'registrado_em')
+    list_filter = ('registrado_em', 'usuario')
     inlines = [LinhaDistribuicaoInline]
 
 
-@admin.register(Beneficiario)
-class BeneficiarioAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'telefone', 'email', 'criado_em')
+@admin.register(Doador)
+class DoadorAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'telefone', 'email', 'usuario', 'criado_em')
+    list_filter = ('usuario',)
     search_fields = ('nome', 'email', 'cpf')
 
 
 @admin.register(Beneficiado)
 class BeneficiadoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'telefone', 'email', 'ultima_distribuicao')
+    list_display = ('nome', 'telefone', 'email', 'usuario', 'ultima_distribuicao')
+    list_filter = ('usuario',)
     search_fields = ('nome', 'email', 'cpf')
 
 
 @admin.register(ItemEstoque)
 class ItemEstoqueAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'categoria', 'quantidade', 'unidade', 'beneficiario', 'validade')
-    list_filter = ('categoria',)
-    search_fields = ('nome', 'beneficiario__nome')
+    list_display = ('nome', 'categoria', 'quantidade', 'unidade', 'doador', 'usuario', 'validade')
+    list_filter = ('categoria', 'usuario')
+    search_fields = ('nome', 'doador__nome')
