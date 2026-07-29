@@ -8,6 +8,7 @@ from sigad_app.views import (
     BeneficiadoDetail,
     BeneficiadoList,
     BeneficiadoUpdate,
+    DoadorCreate,
     DoadorDelete,
     DoadorUpdate,
     CadastroUsuarioView,
@@ -17,6 +18,7 @@ from sigad_app.views import (
     DistribuicaoList,
     DistribuicaoUpdate,
     EstoqueBaixoView,
+    ItemEstoqueCreate,
     ItemEstoqueDelete,
     ItemEstoqueDetail,
     ItemEstoqueList,
@@ -34,7 +36,6 @@ from sigad_app.views import (
     doador_list,
     estoque,
     registrar_distribuicao,
-    registrar_item,
     relatorios,
 )
 
@@ -51,6 +52,7 @@ urlpatterns = [
 
     # Doador (quem DOA)
     path('doadores/', doador_list, name='doador_list'),
+    path('cadastrar/doador/', DoadorCreate.as_view(), name='doador_create'),
     path('editar/doador/<int:pk>/', DoadorUpdate.as_view(), name='doador_update'),
     path('excluir/doador/<int:pk>/', DoadorDelete.as_view(), name='doador_delete'),
 
@@ -62,7 +64,7 @@ urlpatterns = [
     path('excluir/beneficiado/<int:pk>/', BeneficiadoDelete.as_view(), name='beneficiado_delete'),
 
     # Estoque
-    path('registrar-item/', registrar_item, name='registrar_item'),
+    path('registrar-item/', ItemEstoqueCreate.as_view(), name='registrar_item'),
     path('estoque/', estoque, name='estoque'),
     path('listar/itens-estoque/', ItemEstoqueList.as_view(), name='item_estoque_list'),
     path('editar/item-estoque/<int:pk>/', ItemEstoqueUpdate.as_view(), name='item_estoque_update'),

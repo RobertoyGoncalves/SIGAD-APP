@@ -1,82 +1,34 @@
 {% extends 'sigad_app/base.html' %}
 {% block title %}Doadores | SIGAD{% endblock %}
 {% block content %}
-<div class="page-header">
-    <h1 class="section-title">Doadores</h1>
-    <p class="section-subtitle mb-3">Gerencie quem doa itens ao estoque</p>
-
-    <details class="beneficiary-new-details mb-3" id="novoDoador"{% if form.errors %} open{% endif %}>
-        <summary class="btn-sigad summary-as-btn">
-            <i class="icon icon-plus"></i>Novo doador
-        </summary>
-        <div class="mt-3">
-            <div class="sigad-card">
-                <div class="card-body">
-                    <form method="post" action="{% url 'doador_list' %}">
-                        {% csrf_token %}
-                        {% if form.non_field_errors %}
-                        <div class="sigad-alert sigad-alert-danger mb-3">{{ form.non_field_errors }}</div>
-                        {% endif %}
-                        <div class="row g-3">
-                            <div class="col-md-6 field-group">
-                                {{ form.nome.errors }}
-                                <label for="{{ form.nome.id_for_label }}" class="form-label">{{ form.nome.label }} *</label>
-                                {{ form.nome }}
-                            </div>
-                            <div class="col-md-6 field-group">
-                                {{ form.cpf.errors }}
-                                <label for="{{ form.cpf.id_for_label }}" class="form-label">{{ form.cpf.label }}</label>
-                                {{ form.cpf }}
-                            </div>
-                            <div class="col-md-6 field-group">
-                                {{ form.telefone.errors }}
-                                <label for="{{ form.telefone.id_for_label }}" class="form-label">{{ form.telefone.label }}</label>
-                                {{ form.telefone }}
-                            </div>
-                            <div class="col-md-6 field-group">
-                                {{ form.email.errors }}
-                                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
-                                {{ form.email }}
-                            </div>
-                            <div class="col-12 field-group">
-                                {{ form.endereco.errors }}
-                                <label for="{{ form.endereco.id_for_label }}" class="form-label">{{ form.endereco.label }}</label>
-                                {{ form.endereco }}
-                            </div>
-                            <div class="col-12 field-group">
-                                {{ form.observacoes.errors }}
-                                <label for="{{ form.observacoes.id_for_label }}" class="form-label">{{ form.observacoes.label }}</label>
-                                {{ form.observacoes }}
-                            </div>
-                            <div class="col-12 d-flex justify-content-end">
-                                <button type="submit" class="btn-sigad">Salvar doador</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </details>
-
-    <form class="sigad-card mb-4" method="get" action="{% url 'doador_list' %}">
-        <div class="card-body">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-9">
-                    <label class="form-label visually-hidden" for="doador-busca">Buscar</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="icon icon-search"></i></span>
-                        <input type="search" class="form-control sigad-input" id="doador-busca" name="q"
-                               value="{{ filtro_q }}" placeholder="Buscar por nome…">
-                    </div>
-                </div>
-                <div class="col-md-3 d-flex flex-wrap gap-2">
-                    <button type="submit" class="btn-sigad-ghost"><i class="icon icon-search"></i>Buscar</button>
-                    {% if filtro_q %}<a class="btn-sigad-ghost" href="{% url 'doador_list' %}">Limpar</a>{% endif %}
-                </div>
-            </div>
-        </div>
-    </form>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 page-header mb-3">
+    <div>
+        <h1 class="section-title">Doadores</h1>
+        <p class="section-subtitle mb-0">Gerencie quem doa itens ao estoque</p>
+    </div>
+    <a class="btn-sigad" href="{% url 'doador_create' %}">
+        <i class="icon icon-plus"></i>Cadastrar doador
+    </a>
 </div>
+
+<form class="sigad-card mb-4" method="get" action="{% url 'doador_list' %}">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-9">
+                <label class="form-label visually-hidden" for="doador-busca">Buscar</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="icon icon-search"></i></span>
+                    <input type="search" class="form-control sigad-input" id="doador-busca" name="q"
+                           value="{{ filtro_q }}" placeholder="Buscar por nome…">
+                </div>
+            </div>
+            <div class="col-md-3 d-flex flex-wrap gap-2">
+                <button type="submit" class="btn-sigad-ghost"><i class="icon icon-search"></i>Buscar</button>
+                {% if filtro_q %}<a class="btn-sigad-ghost" href="{% url 'doador_list' %}">Limpar</a>{% endif %}
+            </div>
+        </div>
+    </div>
+</form>
 
 {% if is_paginated and page_obj.has_previous %}
 <div class="mb-3 text-secondary small">

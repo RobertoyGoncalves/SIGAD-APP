@@ -251,8 +251,22 @@ class Dashboard(LoginRequiredMixin, TemplateView):
 
 # ─── Doador (quem DOA) ───────────────────────────────────────────────────────
 
+class DoadorCreate(LoginRequiredMixin, CreateView):
+    model = Doador
+    form_class = DoadorForm
+    template_name = 'sigad_app/form.html'
+    success_url = reverse_lazy('doador_list')
+    extra_context = {'titulo': 'Cadastrar Doador', 'botao': 'Salvar'}
+
+    def form_valid(self, form):
+        form.instance.usuario = self.request.user
+        messages.success(self.request, 'Doador cadastrado com sucesso.')
+        return super().form_valid(form)
+
+
 @login_required
 def doador_list(request):
+    """Listagem (GET-only) de doadores. Criação movida para DoadorCreate."""
     q = request.GET.get('q', '').strip()
     # Req 5 — Prefetch com queryset ordenado evita N+1: sem Prefetch,
     # doador.itens_doados.order_by() dispararia 1 query por doador no loop abaixo
@@ -267,17 +281,6 @@ def doador_list(request):
         qs = Doador.objects.prefetch_related(itens_prefetch).filter(usuario=request.user)
     if q:
         qs = qs.filter(nome__icontains=q)
-
-    if request.method == 'POST':
-        form = DoadorForm(request.POST)
-        if form.is_valid():
-            obj = form.save(commit=False)
-            obj.usuario = request.user
-            obj.save()
-            messages.success(request, 'Doador cadastrado com sucesso.')
-            return redirect('doador_list')
-    else:
-        form = DoadorForm()
 
     # Req 3 — paginação manual na FBV, preservando ?q=
     paginator = Paginator(qs, settings.SIGAD_PAGE_SIZE)
@@ -301,7 +304,6 @@ def doador_list(request):
         'page_obj': page_obj,
         'is_paginated': page_obj.has_other_pages(),
         'filtro_q': q,
-        'form': form,
     })
 
 
@@ -426,25 +428,20 @@ class BeneficiadoDelete(LoginRequiredMixin, DeleteView):
 
 # ─── Estoque ──────────────────────────────────────────────────────────────────
 
-# Req 2 — registrar_item restrito a Operadores ou Gestores (ou superuser)
-# Padrão idêntico ao de alternar_admin/@user_passes_test, adaptado para grupos
-@login_required
-@user_passes_test(
-    lambda u: u.is_superuser or u.groups.filter(name__in=['Gestores', 'Operadores']).exists()
-)
-def registrar_item(request):
-    if request.method == 'POST':
-        form = ItemEstoqueForm(request.POST)
-        if form.is_valid():
-            item = form.save(commit=False)
-            item.quantidade_doada = item.quantidade
-            item.usuario = request.user
-            item.save()
-            messages.success(request, 'Item cadastrado no estoque com sucesso.')
-            return redirect('item_estoque_list')
-    else:
-        form = ItemEstoqueForm()
-    return render(request, 'sigad_app/registrar_item.html', {'form': form})
+# Req 2 — acesso restrito a Gestores/Operadores (ou superuser) via GroupRequiredMixin
+class ItemEstoqueCreate(GroupRequiredMixin, CreateView):
+    model = ItemEstoque
+    form_class = ItemEstoqueForm
+    template_name = 'sigad_app/registrar_item.html'
+    success_url = reverse_lazy('item_estoque_list')
+    group_required = ['Gestores', 'Operadores']
+
+    def form_valid(self, form):
+        # seta campos antes de salvar — mesmo padrão de BeneficiadoCreate.form_valid
+        form.instance.quantidade_doada = form.instance.quantidade
+        form.instance.usuario = self.request.user
+        messages.success(self.request, 'Item cadastrado no estoque com sucesso.')
+        return super().form_valid(form)
 
 
 @login_required
