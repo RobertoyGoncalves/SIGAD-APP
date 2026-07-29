@@ -1,6 +1,12 @@
 import django.conf as _conf
 from django.contrib import admin
-from django.urls import include, path
+from django.contrib.auth.views import (
+    PasswordResetView,
+    PasswordResetDoneView,
+    PasswordResetConfirmView,
+    PasswordResetCompleteView,
+)
+from django.urls import include, path, reverse_lazy
 
 from sigad_app.views import (
     BeneficiadoCreate,
@@ -48,6 +54,25 @@ urlpatterns = [
     path('logout/', SigadLogoutView.as_view(), name='logout'),
     path('senha/alterar/', SigadPasswordChangeView.as_view(), name='password_change'),
     path('senha/alterada/', SigadPasswordChangeDoneView.as_view(), name='password_change_done'),
+
+    # Bug 3 — fluxo de recuperação de senha (views prontas do Django)
+    path('senha/esqueci/', PasswordResetView.as_view(
+        template_name='sigad_app/form.html',
+        extra_context={'titulo': 'Recuperar senha', 'botao': 'Enviar e-mail', 'cancelar_url': reverse_lazy('login')},
+        success_url=reverse_lazy('password_reset_done'),
+    ), name='password_reset'),
+    path('senha/esqueci/enviado/', PasswordResetDoneView.as_view(
+        template_name='sigad_app/password_reset_done.html',
+    ), name='password_reset_done'),
+    path('senha/redefinir/<uidb64>/<token>/', PasswordResetConfirmView.as_view(
+        template_name='sigad_app/form.html',
+        extra_context={'titulo': 'Nova senha', 'botao': 'Salvar nova senha', 'cancelar_url': reverse_lazy('login')},
+        success_url=reverse_lazy('password_reset_complete'),
+    ), name='password_reset_confirm'),
+    path('senha/redefinida/', PasswordResetCompleteView.as_view(
+        template_name='sigad_app/password_reset_complete.html',
+    ), name='password_reset_complete'),
+
     path('dashboard/', Dashboard.as_view(), name='dashboard'),
 
     # Doador (quem DOA)

@@ -46,7 +46,14 @@ class Landing(TemplateView):
 class SigadLoginView(LoginView):
     template_name = 'sigad_app/form.html'
     redirect_authenticated_user = True
-    extra_context = {'titulo': 'Entrar no SIGAD', 'botao': 'Entrar'}
+    extra_context = {
+        'titulo': 'Entrar no SIGAD',
+        'botao': 'Entrar',
+        # Bug 2 — URL fixa evita "reenvio de formulário" com history.back() após POST falho
+        'cancelar_url': reverse_lazy('landing'),
+        # Bug 3 — exibe link "Esqueci minha senha" só nesta tela
+        'mostrar_esqueci_senha': True,
+    }
 
 
 class SigadLogoutView(LogoutView):
@@ -67,7 +74,12 @@ class CadastroUsuarioView(CreateView):
     form_class = CadastroUsuarioForm
     template_name = 'sigad_app/form.html'
     success_url = reverse_lazy('login')
-    extra_context = {'titulo': 'Criar conta', 'botao': 'Cadastrar'}
+    extra_context = {
+        'titulo': 'Criar conta',
+        'botao': 'Cadastrar',
+        # Bug 2 — mesma razão: cadastro também vem de tela sem histórico confiável
+        'cancelar_url': reverse_lazy('landing'),
+    }
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:

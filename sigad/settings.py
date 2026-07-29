@@ -198,3 +198,11 @@ if DEBUG:
     # O middleware deve vir logo após SecurityMiddleware
     MIDDLEWARE.insert(1, 'debug_toolbar.middleware.DebugToolbarMiddleware')
     INTERNAL_IPS = ['127.0.0.1']
+
+# ─── E-mail ───────────────────────────────────────────────────────────────────
+if DEBUG:
+    # Bug 3 — imprime e-mails de reset no console/terminal (sem envio real).
+    # Para produção real, configurar backend SMTP via variáveis de ambiente:
+    #   EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_USE_TLS
+    # Isso está fora do escopo desta entrega acadêmica.
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
