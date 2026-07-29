@@ -188,3 +188,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'landing'
+
+# ─── Tamanho de página padrão para todas as ListViews ────────────────────────
+SIGAD_PAGE_SIZE = 10
+
+# ─── Django Debug Toolbar — só ativa em desenvolvimento (DEBUG=True) ─────────
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar']
+    # O middleware deve vir logo após SecurityMiddleware
+    MIDDLEWARE.insert(1, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+    INTERNAL_IPS = ['127.0.0.1']

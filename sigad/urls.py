@@ -1,5 +1,6 @@
+import django.conf as _conf
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 
 from sigad_app.views import (
     BeneficiadoCreate,
@@ -15,6 +16,7 @@ from sigad_app.views import (
     DistribuicaoDetail,
     DistribuicaoList,
     DistribuicaoUpdate,
+    EstoqueBaixoView,
     ItemEstoqueDelete,
     ItemEstoqueDetail,
     ItemEstoqueList,
@@ -66,6 +68,8 @@ urlpatterns = [
     path('editar/item-estoque/<int:pk>/', ItemEstoqueUpdate.as_view(), name='item_estoque_update'),
     path('excluir/item-estoque/<int:pk>/', ItemEstoqueDelete.as_view(), name='item_estoque_delete'),
     path('ver/item-estoque/<int:pk>/', ItemEstoqueDetail.as_view(), name='item_estoque_detail'),
+    # Req 1 — view informativa: itens com estoque baixo (não é CRUD)
+    path('estoque/alerta/', EstoqueBaixoView.as_view(), name='estoque_alerta'),
 
     # Distribuição
     path('registrar-distribuicao/', registrar_distribuicao, name='registrar_distribuicao'),
@@ -81,8 +85,12 @@ urlpatterns = [
     # Relatórios
     path('relatorios/', relatorios, name='relatorios'),
 
-    # Usuários (superuser)
+    # Usuários (superuser / grupo Gestores)
     path('usuarios/', UsuarioListView.as_view(), name='usuario_list'),
     path('usuarios/<int:pk>/alternar-admin/', alternar_admin, name='alternar_admin'),
     path('usuarios/<int:pk>/alternar-ativo/', alternar_ativo, name='alternar_ativo'),
 ]
+
+# Req 4 — Debug Toolbar só em desenvolvimento (nunca em produção)
+if _conf.settings.DEBUG:
+    urlpatterns += [path('__debug__/', include('debug_toolbar.urls'))]

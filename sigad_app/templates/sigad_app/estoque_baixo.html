@@ -1,20 +1,36 @@
 {% extends 'sigad_app/base.html' %}
-{% block title %}Estoque | SIGAD{% endblock %}
+{% block title %}Alerta de Estoque Baixo | SIGAD{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 page-header mb-4">
     <div>
-        <h1 class="section-title">Estoque</h1>
-        <p class="section-subtitle">Itens cadastrados no estoque</p>
+        <h1 class="section-title">Alerta de Estoque Baixo</h1>
+        <p class="section-subtitle">
+            Itens com quantidade entre 1 e 5 unidades — considere solicitar novas doações
+        </p>
     </div>
-    <a class="btn-sigad" href="{% url 'registrar_item' %}"><i class="icon icon-package-plus"></i>Registrar item</a>
+    <a class="btn-sigad-ghost" href="{% url 'dashboard' %}">
+        <i class="icon icon-arrow-left"></i>Voltar ao Dashboard
+    </a>
 </div>
+
+{% if total_alerta %}
+<div class="kpi-card mb-4 d-inline-flex gap-3 align-items-center">
+    <span class="kpi-icon tone-orange rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+        <i class="icon icon-alert-triangle"></i>
+    </span>
+    <div>
+        <p class="kpi-label mb-0">Itens em alerta</p>
+        <p class="kpi-value mb-0">{{ total_alerta }}</p>
+    </div>
+</div>
+{% endif %}
 
 <div class="sigad-card">
     <div class="table-responsive">
         <table class="table sigad-table mb-0">
             <thead>
                 <tr>
-                    <th>Nome</th>
+                    <th>Item</th>
                     <th>Categoria</th>
                     <th>Quantidade</th>
                     <th>Unidade</th>
@@ -24,28 +40,33 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in itens_estoque %}
+                {% for item in itens_alerta %}
                 <tr>
                     <td>{{ item.nome }}</td>
                     <td>{{ item.get_categoria_display }}</td>
-                    <td>{{ item.quantidade }}</td>
+                    <td>
+                        <span class="badge-sigad {% if item.quantidade <= 2 %}badge-danger{% else %}badge-warning{% endif %}">
+                            {{ item.quantidade }}
+                        </span>
+                    </td>
                     <td>{{ item.unidade }}</td>
                     <td>{{ item.doador.nome|default:"—" }}</td>
                     <td>{{ item.validade|date:"d/m/Y"|default:"—" }}</td>
                     <td class="text-end text-nowrap">
                         <a class="btn-sigad-ghost btn-sm" href="{% url 'item_estoque_detail' item.pk %}">Ver</a>
                         <a class="btn-sigad-outline btn-sm" href="{% url 'item_estoque_update' item.pk %}">Editar</a>
-                        <a class="btn-sigad-ghost btn-sm text-danger" href="{% url 'item_estoque_delete' item.pk %}">Excluir</a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="text-center text-muted py-4">Nenhum item no estoque.</td>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <i class="icon icon-check-circle text-success me-2"></i>
+                        Nenhum item com estoque baixo. Tudo em ordem!
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-{% include 'sigad_app/_paginacao.html' %}
 {% endblock %}

@@ -1,4 +1,7 @@
 from django.contrib import admin
+# Req 2 — Group já é registrado automaticamente pelo django.contrib.auth em
+# /admin/auth/group/; não precisamos re-registrar, apenas garantir que
+# 'django.contrib.auth' está em INSTALLED_APPS (já está em settings.py).
 
 from sigad_app.models import Beneficiado, Distribuicao, Doador, ItemEstoque, LinhaDistribuicao
 

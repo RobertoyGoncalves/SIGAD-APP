@@ -1,13 +1,15 @@
 import json
 from datetime import date, timedelta
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeDoneView, PasswordChangeView
+from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q, Sum
+from django.db.models import Prefetch, Q, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
@@ -89,11 +91,33 @@ class SuperuserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return redirect('dashboard')
 
 
-class UsuarioListView(SuperuserRequiredMixin, ListView):
+# Req 2 — GroupRequiredMixin: acesso por grupo do Django (ou superuser)
+class GroupRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    """Restringe acesso a usuários que pertençam a group_required (ou is_superuser)."""
+    group_required: list | str = []
+
+    def test_func(self):
+        if self.request.user.is_superuser:
+            return True
+        grupos = self.group_required
+        if isinstance(grupos, str):
+            grupos = [grupos]
+        return self.request.user.groups.filter(name__in=grupos).exists()
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'Você não tem permissão para acessar essa área.')
+        return redirect('dashboard')
+
+
+# Req 2 — UsuarioListView aberta a superuser OU membros do grupo "Gestores"
+class UsuarioListView(GroupRequiredMixin, ListView):
     model = User
     template_name = 'sigad_app/usuario_list.html'
     context_object_name = 'usuarios'
     ordering = ['username']
+    group_required = ['Gestores']
+    # Req 3 — paginação: SIGAD_PAGE_SIZE registros por página
+    paginate_by = settings.SIGAD_PAGE_SIZE
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -121,6 +145,27 @@ def alternar_ativo(request, pk):
     usuario.save()
     messages.success(request, f'Conta de {usuario.username} {"ativada" if usuario.is_active else "desativada"}.')
     return redirect('usuario_list')
+
+
+# ─── Alerta de estoque baixo (view informativa — Req 1 + Req 2) ──────────────
+
+# Req 1 — view não-CRUD: exibe itens com quantidade baixa usando filter+order_by
+# Req 2 — acesso restrito ao grupo "Gestores" (ou superuser)
+class EstoqueBaixoView(GroupRequiredMixin, TemplateView):
+    template_name = 'sigad_app/estoque_baixo.html'
+    group_required = ['Gestores']
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        user = self.request.user
+        # ORM idiomático: filter + order_by sem loop Python
+        # select_related evita N+1 ao acessar item.doador.nome no template
+        qs = ItemEstoque.objects.filter(quantidade__gt=0, quantidade__lte=5)
+        if not user.is_superuser:
+            qs = qs.filter(usuario=user)
+        ctx['itens_alerta'] = qs.select_related('doador').order_by('quantidade', 'nome')
+        ctx['total_alerta'] = qs.count()
+        return ctx
 
 
 # ─── Dashboard ───────────────────────────────────────────────────────────────
@@ -170,13 +215,17 @@ class Dashboard(LoginRequiredMixin, TemplateView):
                 'tone': 'tone-orange',
             },
         ]
+        # select_related evita N+1 ao acessar d.beneficiado.nome no template
         atividades = []
         for d in distribuicoes_qs.select_related('beneficiado').order_by('-registrado_em')[:5]:
             atividades.append({
                 'titulo': f'Distribuição #{d.pk}',
                 'descricao': f'Para {d.beneficiado.nome}',
+                # guardamos o datetime original para ordenar corretamente em Python
+                '_dt': d.registrado_em,
                 'tempo': d.registrado_em.strftime('%d/%m/%Y %H:%M'),
             })
+        # select_related evita N+1 ao acessar i.doador.nome no template
         for i in itens_qs.select_related('doador').order_by('-criado_em')[:5]:
             desc = f'{i.quantidade} {i.unidade}'
             if i.doador:
@@ -184,10 +233,19 @@ class Dashboard(LoginRequiredMixin, TemplateView):
             atividades.append({
                 'titulo': f'Doação recebida: {i.nome}',
                 'descricao': desc,
+                '_dt': i.criado_em,
                 'tempo': i.criado_em.strftime('%d/%m/%Y %H:%M'),
             })
-        atividades.sort(key=lambda x: x['tempo'], reverse=True)
+        # ordena pelos datetimes reais (não pela string formatada) — Req 1
+        atividades.sort(key=lambda x: x['_dt'], reverse=True)
         ctx['atividades'] = atividades[:8]
+
+        # Req 1 — card informativo: quantos itens estão com estoque baixo (<=5)
+        alerta_qs = ItemEstoque.objects.filter(quantidade__gt=0, quantidade__lte=5)
+        if not user.is_superuser:
+            alerta_qs = alerta_qs.filter(usuario=user)
+        # aggregate evita carregar objetos só para contar — ORM idiomático
+        ctx['total_alerta_estoque'] = alerta_qs.count()
         return ctx
 
 
@@ -196,10 +254,17 @@ class Dashboard(LoginRequiredMixin, TemplateView):
 @login_required
 def doador_list(request):
     q = request.GET.get('q', '').strip()
+    # Req 5 — Prefetch com queryset ordenado evita N+1: sem Prefetch,
+    # doador.itens_doados.order_by() dispararia 1 query por doador no loop abaixo
+    itens_prefetch = Prefetch(
+        'itens_doados',
+        queryset=ItemEstoque.objects.order_by('-criado_em'),
+        to_attr='itens_lista',
+    )
     if request.user.is_superuser:
-        qs = Doador.objects.prefetch_related('itens_doados').all()
+        qs = Doador.objects.prefetch_related(itens_prefetch).all()
     else:
-        qs = Doador.objects.prefetch_related('itens_doados').filter(usuario=request.user)
+        qs = Doador.objects.prefetch_related(itens_prefetch).filter(usuario=request.user)
     if q:
         qs = qs.filter(nome__icontains=q)
 
@@ -214,18 +279,27 @@ def doador_list(request):
     else:
         form = DoadorForm()
 
+    # Req 3 — paginação manual na FBV, preservando ?q=
+    paginator = Paginator(qs, settings.SIGAD_PAGE_SIZE)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    # itera sobre a página (não sobre todo qs) — Prefetch cobre só os objetos da página
     doadores_data = []
-    for doador in qs:
-        itens = list(doador.itens_doados.order_by('-criado_em'))
+    for doador in page_obj:
+        # itens_lista vem do Prefetch; nenhuma query extra disparada aqui
+        itens = doador.itens_lista
         doadores_data.append({
             'obj': doador,
             'itens': itens,
             'total_doacoes': len(itens),
+            # sum() sobre lista Python já em memória — nenhuma query extra
             'total_unidades': sum(i.quantidade for i in itens),
         })
 
     return render(request, 'sigad_app/doador_list.html', {
         'doadores_data': doadores_data,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
         'filtro_q': q,
         'form': form,
     })
@@ -277,6 +351,8 @@ class BeneficiadoList(LoginRequiredMixin, ListView):
     model = Beneficiado
     template_name = 'sigad_app/beneficiado_list.html'
     context_object_name = 'beneficiados'
+    # Req 3 — paginação: SIGAD_PAGE_SIZE registros por página
+    paginate_by = settings.SIGAD_PAGE_SIZE
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -305,6 +381,25 @@ class BeneficiadoDetail(LoginRequiredMixin, DetailView):
         if self.request.user.is_superuser:
             return qs
         return qs.filter(usuario=self.request.user)
+
+    def get_object(self, queryset=None):
+        # Req 5 — prefetch evita N+1: template acessa beneficiado.distribuicoes.all,
+        # e dentro de cada distribuição acessa dist.linhas.all + linha.item_estoque.nome
+        obj = super().get_object(queryset)
+        linhas_prefetch = Prefetch(
+            'linhas',
+            queryset=LinhaDistribuicao.objects.select_related('item_estoque'),
+        )
+        distribuicoes_prefetch = Prefetch(
+            'distribuicoes',
+            queryset=Distribuicao.objects.prefetch_related(linhas_prefetch),
+        )
+        # re-fetch com prefetch em cadeia para eliminar N+1 no template
+        return (
+            Beneficiado.objects
+            .prefetch_related(distribuicoes_prefetch)
+            .get(pk=obj.pk)
+        )
 
 
 class BeneficiadoUpdate(LoginRequiredMixin, UpdateView):
@@ -391,11 +486,14 @@ class ItemEstoqueList(LoginRequiredMixin, ListView):
     model = ItemEstoque
     template_name = 'sigad_app/item_estoque_list.html'
     context_object_name = 'itens_estoque'
+    # Req 3 — paginação: SIGAD_PAGE_SIZE registros por página
+    paginate_by = settings.SIGAD_PAGE_SIZE
 
     def get_queryset(self):
         qs = super().get_queryset()
         if not self.request.user.is_superuser:
             qs = qs.filter(usuario=self.request.user)
+        # Req 5 — select_related evita N+1 ao acessar item.doador.nome no template
         return qs.select_related('doador')
 
 
@@ -540,11 +638,14 @@ class DistribuicaoList(LoginRequiredMixin, ListView):
     model = Distribuicao
     template_name = 'sigad_app/distribuicao_list.html'
     context_object_name = 'distribuicoes'
+    # Req 3 — paginação: SIGAD_PAGE_SIZE registros por página
+    paginate_by = settings.SIGAD_PAGE_SIZE
 
     def get_queryset(self):
         qs = super().get_queryset()
         if not self.request.user.is_superuser:
             qs = qs.filter(usuario=self.request.user)
+        # Req 5 — select_related evita N+1 ao acessar distribuicao.beneficiado.nome no template
         return qs.select_related('beneficiado')
 
 
@@ -558,6 +659,22 @@ class DistribuicaoDetail(LoginRequiredMixin, DetailView):
         if self.request.user.is_superuser:
             return qs
         return qs.filter(usuario=self.request.user)
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        # Req 5 — prefetch evita N+1: template acessa distribuicao.linhas.all
+        # e linha.item_estoque.nome / linha.item_estoque.unidade
+        return (
+            Distribuicao.objects
+            .select_related('beneficiado')
+            .prefetch_related(
+                Prefetch(
+                    'linhas',
+                    queryset=LinhaDistribuicao.objects.select_related('item_estoque'),
+                )
+            )
+            .get(pk=obj.pk)
+        )
 
 
 class DistribuicaoUpdate(LoginRequiredMixin, UpdateView):
@@ -591,11 +708,16 @@ class LinhaDistribuicaoList(LoginRequiredMixin, ListView):
     model = LinhaDistribuicao
     template_name = 'sigad_app/linha_distribuicao_list.html'
     context_object_name = 'linhas_distribuicao'
+    # Req 3 — paginação: SIGAD_PAGE_SIZE registros por página
+    paginate_by = settings.SIGAD_PAGE_SIZE
 
     def get_queryset(self):
         qs = super().get_queryset()
         if not self.request.user.is_superuser:
             qs = qs.filter(distribuicao__usuario=self.request.user)
+        # Req 5 — select_related em cadeia evita N+1:
+        # template acessa linha.distribuicao.pk, linha.distribuicao.beneficiado.nome,
+        # linha.item_estoque.nome — tudo coberto pela cadeia abaixo
         return qs.select_related(
             'distribuicao__beneficiado', 'item_estoque'
         )
@@ -719,18 +841,19 @@ def relatorios(request):
         tipo_label = 'Mensal — unidades distribuídas por semana'
 
         # Agrupar por semana do mês
+        # Req 1 — aggregate() em vez de loop Python sobre QuerySet para cada semana
         semanas = {}
         d = inicio
         semana_num = 1
         while d <= fim:
             chave = f'Semana {semana_num}'
-            semanas[chave] = 0
             d_fim_sem = min(d + timedelta(days=6), fim)
-            linhas_qs = LinhaDistribuicao.objects.filter(
+            # aggregate Sum evita carregar todas as linhas em Python para somar
+            resultado = LinhaDistribuicao.objects.filter(
                 distribuicao__registrado_em__date__range=(d, d_fim_sem),
                 **filtro_linha_dist,
-            )
-            semanas[chave] = sum(l.quantidade for l in linhas_qs)
+            ).aggregate(total=Sum('quantidade'))
+            semanas[chave] = resultado['total'] or 0
             d = d_fim_sem + timedelta(days=1)
             semana_num += 1
 

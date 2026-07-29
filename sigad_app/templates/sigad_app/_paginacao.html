@@ -1,0 +1,40 @@
+{% comment %}
+Req 3 — bloco de paginação reutilizável.
+Usa page_obj, is_paginated (contexto padrão Django ListView).
+Preserva filtro_q e filtro_categoria na querystring se presentes no contexto.
+{% endcomment %}
+{% if is_paginated %}
+<nav class="mt-4 d-flex flex-column align-items-center gap-2" aria-label="Paginação">
+    <ul class="pagination flex-wrap justify-content-center gap-1 mb-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?{% if filtro_q %}q={{ filtro_q }}&{% endif %}{% if filtro_categoria %}categoria={{ filtro_categoria }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                &laquo; Anterior
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">&laquo; Anterior</span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+            <a class="page-link" href="?{% if filtro_q %}q={{ filtro_q }}&{% endif %}{% if filtro_categoria %}categoria={{ filtro_categoria }}&{% endif %}page={{ num }}">{{ num }}</a>
+        </li>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?{% if filtro_q %}q={{ filtro_q }}&{% endif %}{% if filtro_categoria %}categoria={{ filtro_categoria }}&{% endif %}page={{ page_obj.next_page_number }}">
+                Próximo &raquo;
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Próximo &raquo;</span></li>
+        {% endif %}
+    </ul>
+    <p class="text-secondary small mb-0">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        &mdash; {{ page_obj.paginator.count }} registro{{ page_obj.paginator.count|pluralize }}
+    </p>
+</nav>
+{% endif %}

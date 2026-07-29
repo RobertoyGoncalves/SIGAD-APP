@@ -26,6 +26,27 @@
     {% endfor %}
 </div>
 
+{% if total_alerta_estoque %}
+<div class="sigad-card mb-4 border-warning">
+    <div class="card-header-light d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <i class="icon icon-alert-triangle text-warning"></i>
+            <h5 class="mb-0 fw-semibold">Alerta de Estoque Baixo</h5>
+        </div>
+        {% if request.user.is_superuser or request.user.groups.all|length %}
+        <a class="btn-sigad-ghost btn-sm" href="{% url 'estoque_alerta' %}">Ver detalhes</a>
+        {% endif %}
+    </div>
+    <div class="card-body py-2">
+        <p class="mb-0 text-secondary small">
+            <strong class="text-warning">{{ total_alerta_estoque }}</strong>
+            item{{ total_alerta_estoque|pluralize }} com quantidade entre 1 e 5 unidades.
+            Considere solicitar novas doações.
+        </p>
+    </div>
+</div>
+{% endif %}
+
 <div class="sigad-card">
     <div class="card-header-light">
         <h5 class="mb-0 fw-semibold">Atividades Recentes</h5>
