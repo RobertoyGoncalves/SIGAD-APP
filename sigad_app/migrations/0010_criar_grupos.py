@@ -1,11 +1,15 @@
 """
 Req 2 — data migration: cria os grupos "Gestores" e "Operadores" no banco.
 
-- Gestores: podem acessar UsuarioListView e EstoqueBaixoView (GroupRequiredMixin)
-- Operadores: grupo operacional para futura expansão de permissões
+- Gestores: acesso a UsuarioListView (gerenciar contas) e EstoqueBaixoView
+  (alerta de itens com estoque baixo) via GroupRequiredMixin.
+- Operadores: acesso a registrar_item (cadastrar itens no estoque) via
+  @user_passes_test(lambda u: u.is_superuser or u.groups.filter(Gestores|Operadores)).
+  Reflete a separação natural do domínio: operadores fazem o trabalho dia a dia
+  (registrar doações/itens), gestores têm visão gerencial do sistema.
 
-Os grupos ficam gerenciáveis via /admin/auth/group/ (registrado automaticamente
-pelo django.contrib.auth).
+Superusuários ignoram a verificação de grupo em ambas as views.
+Os grupos ficam gerenciáveis via /admin/auth/group/ (registro automático do Django).
 """
 from django.db import migrations
 

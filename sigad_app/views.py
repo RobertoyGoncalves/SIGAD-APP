@@ -378,14 +378,14 @@ class BeneficiadoDetail(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if self.request.user.is_superuser:
-            return qs
-        return qs.filter(usuario=self.request.user)
-
-    def get_object(self, queryset=None):
-        # Req 5 — prefetch evita N+1: template acessa beneficiado.distribuicoes.all,
-        # e dentro de cada distribuição acessa dist.linhas.all + linha.item_estoque.nome
-        obj = super().get_object(queryset)
+        if not self.request.user.is_superuser:
+            qs = qs.filter(usuario=self.request.user)
+        # Req 5 (ajuste fino) — prefetch em cadeia na própria queryset evita
+        # a query duplicada que o get_object() anterior introduzia:
+        # DetailView usa get_queryset() automaticamente em get_object(),
+        # então basta aplicar os prefetches aqui uma única vez.
+        # Template acessa: beneficiado.distribuicoes.all → dist.linhas.all
+        # → linha.item_estoque.nome  (3 queries total, antes eram 4)
         linhas_prefetch = Prefetch(
             'linhas',
             queryset=LinhaDistribuicao.objects.select_related('item_estoque'),
@@ -394,12 +394,7 @@ class BeneficiadoDetail(LoginRequiredMixin, DetailView):
             'distribuicoes',
             queryset=Distribuicao.objects.prefetch_related(linhas_prefetch),
         )
-        # re-fetch com prefetch em cadeia para eliminar N+1 no template
-        return (
-            Beneficiado.objects
-            .prefetch_related(distribuicoes_prefetch)
-            .get(pk=obj.pk)
-        )
+        return qs.prefetch_related(distribuicoes_prefetch)
 
 
 class BeneficiadoUpdate(LoginRequiredMixin, UpdateView):
@@ -431,7 +426,12 @@ class BeneficiadoDelete(LoginRequiredMixin, DeleteView):
 
 # ─── Estoque ──────────────────────────────────────────────────────────────────
 
+# Req 2 — registrar_item restrito a Operadores ou Gestores (ou superuser)
+# Padrão idêntico ao de alternar_admin/@user_passes_test, adaptado para grupos
 @login_required
+@user_passes_test(
+    lambda u: u.is_superuser or u.groups.filter(name__in=['Gestores', 'Operadores']).exists()
+)
 def registrar_item(request):
     if request.method == 'POST':
         form = ItemEstoqueForm(request.POST)
@@ -656,24 +656,18 @@ class DistribuicaoDetail(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if self.request.user.is_superuser:
-            return qs
-        return qs.filter(usuario=self.request.user)
-
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        # Req 5 — prefetch evita N+1: template acessa distribuicao.linhas.all
-        # e linha.item_estoque.nome / linha.item_estoque.unidade
-        return (
-            Distribuicao.objects
-            .select_related('beneficiado')
-            .prefetch_related(
-                Prefetch(
-                    'linhas',
-                    queryset=LinhaDistribuicao.objects.select_related('item_estoque'),
-                )
+        if not self.request.user.is_superuser:
+            qs = qs.filter(usuario=self.request.user)
+        # Req 5 (ajuste fino) — select_related + prefetch na queryset elimina
+        # a query duplicada que o get_object() anterior causava.
+        # Template acessa: distribuicao.beneficiado.nome (select_related)
+        # e distribuicao.linhas.all → linha.item_estoque.nome/unidade (prefetch)
+        # (2 queries total após o SELECT principal, antes eram 3)
+        return qs.select_related('beneficiado').prefetch_related(
+            Prefetch(
+                'linhas',
+                queryset=LinhaDistribuicao.objects.select_related('item_estoque'),
             )
-            .get(pk=obj.pk)
         )
 
 
