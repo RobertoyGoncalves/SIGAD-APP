@@ -78,7 +78,7 @@ def _postgres_from_env() -> dict | None:
         'OPTIONS': {'sslmode': 'require'},
         'CONN_MAX_AGE': 60,
     }
-DEBUG = _is_truthy(os.getenv('DEBUG', 'True'))
+DEBUG = _is_truthy(os.getenv('DEBUG', 'False'))
 
 ALLOWED_HOSTS = [
     h.strip()
@@ -206,3 +206,12 @@ if DEBUG:
     #   EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_USE_TLS
     # Isso está fora do escopo desta entrega acadêmica.
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {'console': {'class': 'logging.StreamHandler'}},
+    'root': {'handlers': ['console'], 'level': 'INFO'},
+    'loggers': {'django.request': {'handlers': ['console'], 'level': 'ERROR', 'propagate': False}},
+}
