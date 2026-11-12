@@ -1,3 +1,4 @@
+
 from pathlib import Path
 import hashlib
 import os
@@ -15,10 +16,18 @@ except ImportError:
 
 def _secret_key_from_env() -> str:
     raw = (os.getenv('SECRET_KEY') or '').strip()
+
     if raw and raw != 'django-insecure-sigad-dev-key':
         return raw
+
+    # No Google App Engine, a chave deve ser configurada
+    # por uma variável de ambiente segura.
+    if os.getenv('GAE_ENV', '').startswith('standard'):
+        raise RuntimeError(
+            'Configure a variável SECRET_KEY no Google App Engine.'
+        )
+
     if os.getenv('RENDER', '').strip().lower() in ('1', 'true', 'yes'):
-        # fallback se o render ainda nao injetou secret_key neste deploy
         seed = '|'.join(
             (
                 os.getenv('RENDER_EXTERNAL_HOSTNAME', ''),
@@ -28,6 +37,7 @@ def _secret_key_from_env() -> str:
             )
         )
         return hashlib.sha256(seed.encode('utf-8')).hexdigest()
+
     return 'django-insecure-sigad-dev-key'
 
 
@@ -40,13 +50,24 @@ def _is_truthy(val: str) -> bool:
 
 def _postgres_from_url(url: str) -> dict:
     u = urlparse(url.strip())
+
     if u.scheme not in ('postgres', 'postgresql'):
-        raise ValueError('DATABASE_URL deve começar com postgres:// ou postgresql://')
+        raise ValueError(
+            'DATABASE_URL deve começar com postgres:// ou postgresql://'
+        )
+
     name = (u.path or '').lstrip('/') or 'postgres'
     host = u.hostname or ''
+
     sslmode = os.getenv('DATABASE_SSLMODE', '').strip()
+
     if not sslmode:
-        sslmode = 'disable' if host.endswith('.railway.internal') else 'require'
+        sslmode = (
+            'disable'
+            if host.endswith('.railway.internal')
+            else 'require'
+        )
+
     config = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': name,
@@ -56,18 +77,24 @@ def _postgres_from_url(url: str) -> dict:
         'PORT': str(u.port or 5432),
         'CONN_MAX_AGE': 60,
     }
+
     if sslmode != 'disable':
         config['OPTIONS'] = {'sslmode': sslmode}
+
     return config
 
 
 def _postgres_from_env() -> dict | None:
     url = os.getenv('DATABASE_URL', '').strip()
+
     if url:
         return _postgres_from_url(url)
+
     host = os.getenv('SUPABASE_DB_HOST', '').strip()
+
     if not host:
         return None
+
     return {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('SUPABASE_DB_NAME', 'postgres'),
@@ -78,38 +105,74 @@ def _postgres_from_env() -> dict | None:
         'OPTIONS': {'sslmode': 'require'},
         'CONN_MAX_AGE': 60,
     }
+
+
 DEBUG = _is_truthy(os.getenv('DEBUG', 'False'))
 
 ALLOWED_HOSTS = [
     h.strip()
-    for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    for h in os.getenv(
+        'ALLOWED_HOSTS',
+        'localhost,127.0.0.1'
+    ).split(',')
     if h.strip()
 ]
+
 _render_host = os.getenv('RENDER_EXTERNAL_HOSTNAME', '').strip()
 _railway_host = os.getenv('RAILWAY_PUBLIC_DOMAIN', '').strip()
-_on_railway = bool(os.getenv('RAILWAY_ENVIRONMENT', '').strip()) or bool(_railway_host)
+
+_on_railway = (
+    bool(os.getenv('RAILWAY_ENVIRONMENT', '').strip())
+    or bool(_railway_host)
+)
+
+_on_app_engine = os.getenv('GAE_ENV', '').startswith('standard')
 
 for _auto_host in (_render_host, _railway_host):
     if _auto_host and _auto_host not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(_auto_host)
 
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 _csrf_origins: list[str] = []
+
 if _render_host:
     _csrf_origins.append(f'https://{_render_host}')
+
 if _railway_host:
     _csrf_origins.append(f'https://{_railway_host}')
+
 if extra := os.getenv('CSRF_TRUSTED_ORIGINS', '').strip():
     for origin in extra.split(','):
         origin = origin.strip()
+
         if origin and origin not in _csrf_origins:
             _csrf_origins.append(origin)
+
 if _csrf_origins:
     CSRF_TRUSTED_ORIGINS = _csrf_origins
 
-if _is_truthy(os.getenv('RENDER', '')) or _on_railway:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Configurações de HTTPS para Render, Railway e Google App Engine.
+if (
+    _is_truthy(os.getenv('RENDER', ''))
+    or _on_railway
+    or _on_app_engine
+):
+    SECURE_PROXY_SSL_HEADER = (
+        'HTTP_X_FORWARDED_PROTO',
+        'https'
+    )
+
+
+# Proteções adicionais exclusivas do Google App Engine.
+if _on_app_engine:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 3600
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -122,6 +185,7 @@ INSTALLED_APPS = [
     'django_filters',
 ]
 
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -132,6 +196,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'sigad.urls'
 
@@ -151,9 +216,11 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'sigad.wsgi.application'
 
 _pg = _postgres_from_env()
+
 if _pg:
     DATABASES = {'default': _pg}
 else:
@@ -164,12 +231,15 @@ else:
         }
     }
 
+
 AUTH_PASSWORD_VALIDATORS = []
 
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
+
 USE_I18N = True
 USE_TZ = True
+
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'sigad_app' / 'static']
@@ -184,35 +254,52 @@ if not DEBUG:
         },
     }
 
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'landing'
 
-# ─── Tamanho de página padrão para todas as ListViews ────────────────────────
+
+# Tamanho de página padrão para todas as ListViews.
 SIGAD_PAGE_SIZE = 10
 
-# ─── Django Debug Toolbar — só ativa em desenvolvimento (DEBUG=True) ─────────
+
+# Django Debug Toolbar: somente em desenvolvimento.
 if DEBUG:
     INSTALLED_APPS += ['debug_toolbar']
-    # O middleware deve vir logo após SecurityMiddleware
-    MIDDLEWARE.insert(1, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+
+    MIDDLEWARE.insert(
+        1,
+        'debug_toolbar.middleware.DebugToolbarMiddleware'
+    )
+
     INTERNAL_IPS = ['127.0.0.1']
 
-# ─── E-mail ───────────────────────────────────────────────────────────────────
+
+# Configuração de e-mail.
 if DEBUG:
-    # Bug 3 — imprime e-mails de reset no console/terminal (sem envio real).
-    # Para produção real, configurar backend SMTP via variáveis de ambiente:
-    #   EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_USE_TLS
-    # Isso está fora do escopo desta entrega acadêmica.
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {'console': {'class': 'logging.StreamHandler'}},
-    'root': {'handlers': ['console'], 'level': 'INFO'},
-    'loggers': {'django.request': {'handlers': ['console'], 'level': 'ERROR', 'propagate': False}},
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler'
+        }
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO'
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False
+        }
+    },
 }
