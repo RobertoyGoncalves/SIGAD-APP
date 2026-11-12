@@ -9,6 +9,23 @@
     <a class="btn-sigad" href="{% url 'registrar_item' %}"><i class="icon icon-package-plus"></i>Registrar item</a>
 </div>
 
+<form method="get" class="sigad-card mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-5">
+            {{ filter.form.nome.label_tag }}
+            {{ filter.form.nome }}
+        </div>
+        <div class="col-12 col-md-4">
+            {{ filter.form.categoria.label_tag }}
+            {{ filter.form.categoria }}
+        </div>
+        <div class="col-12 col-md-3 d-flex gap-2">
+            <button type="submit" class="btn-sigad w-100">Filtrar</button>
+            <a href="{% url 'item_estoque_list' %}" class="btn-sigad-outline w-100">Limpar</a>
+        </div>
+    </div>
+</form>
+
 <div class="sigad-card">
     <div class="table-responsive">
         <table class="table sigad-table mb-0">

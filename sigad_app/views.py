@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeDoneView, PasswordChangeView
+from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Prefetch, Q, Sum
@@ -23,6 +24,9 @@ from django.views.generic import (
     TemplateView,
     UpdateView,
 )
+from django_filters.views import FilterView
+
+from sigad_app.filters import ItemEstoqueFilter
 
 from sigad_app.forms import BeneficiadoForm, CadastroUsuarioForm, DoadorForm, ItemEstoqueForm
 from sigad_app.models import (
@@ -319,11 +323,12 @@ def doador_list(request):
     })
 
 
-class DoadorUpdate(LoginRequiredMixin, UpdateView):
+class DoadorUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Doador
     form_class = DoadorForm
     template_name = 'sigad_app/form.html'
     success_url = reverse_lazy('doador_list')
+    success_message = 'Doador atualizado com sucesso.'
     extra_context = {'titulo': 'Editar Doador', 'botao': 'Atualizar'}
 
     def get_queryset(self):
@@ -333,10 +338,11 @@ class DoadorUpdate(LoginRequiredMixin, UpdateView):
         return qs.filter(usuario=self.request.user)
 
 
-class DoadorDelete(LoginRequiredMixin, DeleteView):
+class DoadorDelete(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Doador
     template_name = 'sigad_app/form.html'
     success_url = reverse_lazy('doador_list')
+    success_message = 'Doador excluído com sucesso.'
     extra_context = {'titulo': 'Excluir Doador', 'botao': 'Confirmar exclusão'}
 
     def get_queryset(self):
@@ -411,11 +417,12 @@ class BeneficiadoDetail(LoginRequiredMixin, DetailView):
         return qs.prefetch_related(distribuicoes_prefetch)
 
 
-class BeneficiadoUpdate(LoginRequiredMixin, UpdateView):
+class BeneficiadoUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Beneficiado
     form_class = BeneficiadoForm
     template_name = 'sigad_app/form.html'
     success_url = reverse_lazy('beneficiado_list')
+    success_message = 'Beneficiado atualizado com sucesso.'
     extra_context = {'titulo': 'Editar Beneficiado', 'botao': 'Atualizar'}
 
     def get_queryset(self):
@@ -425,10 +432,11 @@ class BeneficiadoUpdate(LoginRequiredMixin, UpdateView):
         return qs.filter(usuario=self.request.user)
 
 
-class BeneficiadoDelete(LoginRequiredMixin, DeleteView):
+class BeneficiadoDelete(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Beneficiado
     template_name = 'sigad_app/form.html'
     success_url = reverse_lazy('beneficiado_list')
+    success_message = 'Beneficiado excluído com sucesso.'
     extra_context = {'titulo': 'Excluir Beneficiado', 'botao': 'Confirmar exclusão'}
 
     def get_queryset(self):
@@ -491,26 +499,26 @@ def estoque(request):
     })
 
 
-class ItemEstoqueList(LoginRequiredMixin, ListView):
+class ItemEstoqueList(LoginRequiredMixin, FilterView):
     model = ItemEstoque
+    filterset_class = ItemEstoqueFilter
     template_name = 'sigad_app/item_estoque_list.html'
     context_object_name = 'itens_estoque'
-    # Req 3 — paginação: SIGAD_PAGE_SIZE registros por página
     paginate_by = settings.SIGAD_PAGE_SIZE
 
     def get_queryset(self):
         qs = super().get_queryset()
         if not self.request.user.is_superuser:
             qs = qs.filter(usuario=self.request.user)
-        # Req 5 — select_related evita N+1 ao acessar item.doador.nome no template
         return qs.select_related('doador')
 
 
-class ItemEstoqueUpdate(LoginRequiredMixin, UpdateView):
+class ItemEstoqueUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = ItemEstoque
     form_class = ItemEstoqueForm
     template_name = 'sigad_app/registrar_item.html'
     success_url = reverse_lazy('item_estoque_list')
+    success_message = 'Item de estoque atualizado com sucesso.'
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -524,10 +532,11 @@ class ItemEstoqueUpdate(LoginRequiredMixin, UpdateView):
         return ctx
 
 
-class ItemEstoqueDelete(LoginRequiredMixin, DeleteView):
+class ItemEstoqueDelete(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = ItemEstoque
     template_name = 'sigad_app/form.html'
     success_url = reverse_lazy('item_estoque_list')
+    success_message = 'Item de estoque excluído com sucesso.'
     extra_context = {'titulo': 'Excluir Item de Estoque', 'botao': 'Confirmar exclusão'}
 
     def get_queryset(self):
@@ -680,11 +689,12 @@ class DistribuicaoDetail(LoginRequiredMixin, DetailView):
         )
 
 
-class DistribuicaoUpdate(LoginRequiredMixin, UpdateView):
+class DistribuicaoUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Distribuicao
     fields = ['beneficiado']
     template_name = 'sigad_app/form.html'
     success_url = reverse_lazy('distribuicao_list')
+    success_message = 'Distribuição atualizada com sucesso.'
     extra_context = {'titulo': 'Editar Distribuição', 'botao': 'Atualizar'}
 
     def get_queryset(self):
@@ -694,10 +704,11 @@ class DistribuicaoUpdate(LoginRequiredMixin, UpdateView):
         return qs.filter(usuario=self.request.user)
 
 
-class DistribuicaoDelete(LoginRequiredMixin, DeleteView):
+class DistribuicaoDelete(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Distribuicao
     template_name = 'sigad_app/form.html'
     success_url = reverse_lazy('distribuicao_list')
+    success_message = 'Distribuição excluída com sucesso.'
     extra_context = {'titulo': 'Excluir Distribuição', 'botao': 'Confirmar exclusão'}
 
     def get_queryset(self):
